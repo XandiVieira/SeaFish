@@ -3,6 +3,7 @@ package com.xandi.seafish;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -51,7 +52,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private Sprite peixe, menuSprite, playSprite, replaySprite, pauseSprite, nextSprite, backSprite, simSprite, naoSprite;
     private Sprite[] algas;
     //imagens
-    private Texture fundo, telaInicial, gameOverText, reload, pause, startGame, next, back, menuBotao, simBotao, naoBotao, continueText, videoIcon;
+    private Texture telaInicial, gameOverText, reload, pause, startGame, next, back, menuBotao, simBotao, naoBotao, continueText, videoIcon;
+    private Texture[] fundo;
     private Sprite[][] peixes;
     private Sprite[] tubaroes;
     private Sprite[] cardumes;
@@ -67,11 +69,13 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private int estado; //0=menu - 1=iniciado
     private int numMinhocas;
     private int contaPartidas = 1;
+    private int contaFundo;
     private boolean colide;
     private boolean gameOver;
     //Começar os movimentos depois do primeiro toque
     private boolean iniciado;
     private boolean colidiuObstaculo;
+    private boolean isColiding;
     private boolean[] colidiuMinhoca;
     private boolean pausa;
     private boolean isSlowShark;
@@ -101,6 +105,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private int toquesParaSoltar;
 
     private Sound comeSound, bateSound, gameOverSound, bolhaSound;
+    private Music somFundo;
 
     private int variacaoPeixe;
     private float variacaoPeixeAux;
@@ -114,8 +119,10 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         double alturaPadrao = 1080;
         double larguraPadrao = 1920;
 
+        fundo = new Texture[3];
+
         //Inicializa os Sprites
-        peixes = new Sprite[3][2];
+        peixes = new Sprite[3][5];
         tubaroes = new Sprite[3];
         cardumes = new Sprite[3];
         Sprite[] aguas = new Sprite[1];
@@ -138,6 +145,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         gameOver = false;
         iniciado = false;
         colidiuObstaculo = false;
+        isColiding = false;
         pausa = false;
         isSlowShark = false;
         isShark = false;
@@ -146,6 +154,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         isRewardedYet = false;
 
         numMinhocas = 1;
+        contaFundo = 0;
 
         //Inicializa formas
         minhocaColidiu = new boolean[4];
@@ -179,7 +188,9 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         batch = new SpriteBatch();
         //Texturas
         peixe = new Sprite(new Texture("imagens/peixe1.png"));
-        fundo = new Texture("imagens/fundo3.png");
+        fundo[0] = new Texture("imagens/fundo1.png");
+        fundo[1] = new Texture("imagens/fundo2.png");
+        fundo[2] = new Texture("imagens/fundo3.png");
         telaInicial = new Texture("imagens/telainicio.png");
         gameOverText = new Texture("imagens/gameover.png");
         continueText = new Texture("imagens/continue.png");
@@ -321,14 +332,17 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         pauseSprite.setSize(100 * ajusteLargura, 150 * ajusteAltura);
         pauseSprite.setPosition(largura-(pause.getWidth()*ajusteLargura*3), (float) (altura - (minhocasScore[0].getHeight() * ajusteAltura * 3.5)));
 
-
+        somFundo = Gdx.audio.newMusic(Gdx.files.internal("audios/somfundo.mp3"));
         comeSound = Gdx.audio.newSound(Gdx.files.internal("audios/nhac.mp3"));
         bateSound = Gdx.audio.newSound(Gdx.files.internal("audios/colisao.mpeg"));
         gameOverSound = Gdx.audio.newSound(Gdx.files.internal("audios/gameover.aac"));
         bolhaSound = Gdx.audio.newSound(Gdx.files.internal("audios/bubble.mp3"));
         bolhaSound.setVolume(bolhaSound.play(), (float) 0.2);
+        somFundo.setVolume((float) 0.1);
+        somFundo.setLooping(true);
         comeSound.setVolume(comeSound.play(), (float) 1);
         bateSound.setVolume(bateSound.play(), (float) 0.5);
+        somFundo.play();
     }
 
     @Override
@@ -400,6 +414,9 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
 
                 //faz o peixe subir a cada toque na tela
                 if (Gdx.input.justTouched() && !pausa) {
+                    if(!somFundo.isPlaying()){
+                        somFundo.play();
+                    }
                     bolhaSound.play(0.1f);
                     iniciado = true;
                     velocidadeQueda = -12 * (ajusteLargura);
@@ -462,7 +479,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             }
 
             batch.begin();
-            batch.draw(fundo, 0, 0, largura, altura);
+            batch.draw(fundo[contaFundo], 0, 0, largura, altura);
             batch.draw(peixes[i][variacaoPeixe], largura / 12, posicaoInicialVertical, peixes[i][variacaoPeixe].getWidth() * ajusteLargura, peixes[i][variacaoPeixe].getHeight() * ajusteAltura);
             batch.draw(pause, largura-(pause.getWidth()*ajusteLargura*3), (float) (altura - (minhocasScore[0].getHeight() * ajusteAltura * 3.5)), 100 * ajusteLargura, 100 * ajusteAltura);
             for (int i = 0; i < obstaculos.length; i++) {
@@ -568,6 +585,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
                     }
                 }
                 if(pauseSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())){
+                    somFundo.pause();
                     iniciado = false;
                 }
             }
@@ -585,12 +603,31 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     }
 
     private void variaPeixe() {
-        if (variacaoPeixeAux > 2) {
-            variacaoPeixeAux = 0;
-        } else if (variacaoPeixeAux >= 1) {
-            variacaoPeixe = 0;
-        } else {
-            variacaoPeixe = 1;
+        if(!isShark){
+            if (variacaoPeixeAux > 2) {
+                variacaoPeixeAux = 0;
+            } else if (variacaoPeixeAux >= 1) {
+                variacaoPeixe = 0;
+            } else {
+                variacaoPeixe = 1;
+            }
+        }else if (isSlowShark){
+            Gdx.app.log("Variação", " "+variacaoPeixe);
+            if (variacaoPeixeAux > 2) {
+                variacaoPeixeAux = 0;
+            } else if (variacaoPeixeAux >= 1) {
+                variacaoPeixe = 1;
+            } else {
+                variacaoPeixe = 3;
+            }
+        }else if(isShark){
+            if (variacaoPeixeAux > 2) {
+                variacaoPeixeAux = 0;
+            } else if (variacaoPeixeAux >= 1) {
+                variacaoPeixe = 3;
+            } else {
+                variacaoPeixe = 4;
+            }
         }
     }
 
@@ -803,27 +840,16 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             } else if(!isShark) {
                 numMinhocas = 1;
                 colide = false;
-                viraTubarao();
+                mudaFundo();
             }
         }
     }
 
-    private void viraTubarao() {
-        if (i == 0) {
-            peixes[i][0].setTexture(new Texture("imagens/tubarao1.png"));
-            peixes[i][0].setSize(peixes[i][0].getTexture().getWidth(), peixes[i][0].getTexture().getHeight());
-            peixes[i][1].setTexture(new Texture("imagens/tubarao1.png"));
-            peixes[i][1].setSize(peixes[i][1].getTexture().getWidth(), peixes[i][1].getTexture().getHeight());
-        } else if (i == 1) {
-            peixes[i][0].setTexture(new Texture("imagens/tubarao3.png"));
-            peixes[i][0].setSize(peixes[i][0].getTexture().getWidth(), peixes[i][0].getTexture().getHeight());
-            peixes[i][1].setTexture(new Texture("imagens/tubarao3.png"));
-            peixes[i][1].setSize(peixes[i][1].getTexture().getWidth(), peixes[i][1].getTexture().getHeight());
-        } else if (i == 2) {
-            peixes[i][0].setTexture(new Texture("imagens/tubarao2.png"));
-            peixes[i][0].setSize(peixes[i][0].getTexture().getWidth(), peixes[i][0].getTexture().getHeight());
-            peixes[i][1].setTexture(new Texture("imagens/tubarao2.png"));
-            peixes[i][1].setSize(peixes[i][1].getTexture().getWidth(), peixes[i][1].getTexture().getHeight());
+    private void mudaFundo() {
+        if(contaFundo<=1){
+            contaFundo++;
+        }else{
+            contaFundo=0;
         }
     }
 
@@ -837,15 +863,12 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             }
             isShark = true;
         } else if (contaMetrosTubarao <= 190) {
-            if (contaMetrosTubarao % 10 == 0) {
-                setPeixes();
-            } else if (contaMetrosTubarao % 5 == 0) {
-                viraTubarao();
+            if (contaMetrosTubarao % 5 == 0) {
+                mudaFundo();
             }
             isSlowShark = true;
             isShark = true;
         } else {
-            setPeixes();
             colide = true;
             contaMetrosTubarao = 0;
             isSlowShark = false;
@@ -863,11 +886,13 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
                 Intersector.overlaps(peixeCircle, aguasSujasCirc[0]) || Intersector.overlaps(peixeCircle, aguasSujasCirc[1]) ||
                 Intersector.overlaps(peixeCircle, aguasSujasCirc[2]) || Intersector.overlaps(peixeCircle, aguasSujasCirc[3])) {
 
+            isColiding = true;
+
             if (!colidiuObstaculo) {
                 bateSound.play(1f);
                 numMinhocas -= 3;
                 colidiuObstaculo = true;
-                if (numMinhocas < 1) {
+                if (numMinhocas < 0) {
                     if (!isRewardedYet && mostraVideoPremiado()) {
                         iniciado = false;
                         pausa = true;
@@ -887,10 +912,15 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             }
         } else {
             colidiuObstaculo = false;
+            isColiding = false;
+        }
+        if(isColiding){
+            variacaoPeixe = 2;
         }
     }
 
     private void gameOver() {
+        somFundo.dispose();
         gameOver = true;
         gameOverSound.play();
     }
@@ -1068,10 +1098,19 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private void setPeixes() {
         peixes[0][0] = new Sprite(new Texture("imagens/peixe1.png"));
         peixes[0][1] = new Sprite(new Texture("imagens/peixe12.png"));
+        peixes[0][2] = new Sprite(new Texture("imagens/peixe1red.png"));
+        peixes[0][3] = new Sprite(new Texture("imagens/tubarao1.png"));
+        peixes[0][4] = new Sprite(new Texture("imagens/tubarao12.png"));
         peixes[1][0] = new Sprite(new Texture("imagens/peixe2.png"));
         peixes[1][1] = new Sprite(new Texture("imagens/peixe22.png"));
+        peixes[1][2] = new Sprite(new Texture("imagens/peixe2red.png"));
+        peixes[1][3] = new Sprite(new Texture("imagens/tubarao2.png"));
+        peixes[1][4] = new Sprite(new Texture("imagens/tubarao22.png"));
         peixes[2][0] = new Sprite(new Texture("imagens/peixe3.png"));
         peixes[2][1] = new Sprite(new Texture("imagens/peixe32.png"));
+        peixes[2][2] = new Sprite(new Texture("imagens/peixe3red.png"));
+        peixes[2][3] = new Sprite(new Texture("imagens/tubarao3.png"));
+        peixes[2][4] = new Sprite(new Texture("imagens/tubarao32.png"));
     }
 
     @Override
