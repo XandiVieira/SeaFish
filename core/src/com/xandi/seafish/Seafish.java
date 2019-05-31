@@ -55,7 +55,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private Sprite[] algas;
 
     //imagens
-    private Texture telaInicial, gameOverText, reload, pause, startGame, next, back, menuBotao, simBotao, naoBotao, continueText, videoIcon, music;
+    private Texture telaInicial, gameOverText, reload, pause, startGame, next, back, menuBotao, simBotao, naoBotao, continueText, videoIcon, music, bolhaInicio;
     private Texture[] fundo;
     private Sprite[][] peixes;
     private Sprite[] tubaroes;
@@ -75,6 +75,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private float velocidade;
     private float velocidadeQueda;
     private float posicaoInicialVertical;
+    private float[] movimentoBolhaHorizontal;
+    private float[] movimentoBolhaVertical;
 
     //counters
     private int estado; //0=menu - 1=iniciado
@@ -105,6 +107,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private boolean[] minhocaColidiu;
     private boolean voltando;
     private boolean vidaExtra;
+    private boolean[] bolhaTocouTopo;
+    private boolean[] bolhaTocouLado;
 
     //Sorteios
     private Random obstaculoRandom;
@@ -116,6 +120,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private int metrosPorSetor;
     private Random numeroAnzol;
     private int tipoAnzol;
+    private Random posicaoBolha;
 
     //Formas para colisões
     private Circle peixeCircle, bolhaCircle;
@@ -158,6 +163,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         minhocasScore = new Sprite[10];
         minhocaBonus = new Sprite();
         bolha = new Sprite(new Texture("imagens/bolha.png"));
+        bolhaInicio = new Texture("imagens/bolhainicio.png");
 
         //Distancia da minhoca do obstáculo
         distanciaMinhoca = new int[4];
@@ -189,6 +195,14 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         mostraMinhocaBonus = false;
         mostraBolha = false;
         vidaExtra = false;
+
+        bolhaTocouTopo = new boolean[10];
+        bolhaTocouLado = new boolean[10];
+
+        for(int i=0; i<10; i++){
+            bolhaTocouTopo[i] = Boolean.FALSE;
+            bolhaTocouLado[i] = Boolean.FALSE;
+        }
 
         numMinhocas = 1;
         contaFundo = 0;
@@ -260,6 +274,14 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         }
 
         posicaoInicialVertical = altura / 2;
+        movimentoBolhaHorizontal = new float[10];
+        movimentoBolhaVertical = new float[10];
+
+        posicaoBolha = new Random();
+        for(int i=0; i<10; i++){
+            movimentoBolhaHorizontal[i] = (float) posicaoBolha.nextInt((int) largura*2);
+            movimentoBolhaVertical[i] = (float) posicaoBolha.nextInt((int) altura*2);
+        }
 
         obstaculos[0] = cardumes[0];
         obstaculos[1] = tubaroes[0];
@@ -312,10 +334,6 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         pauseSprite = new Sprite(pause);
         pauseSprite.setSize(100 * ajusteLargura, 150 * ajusteAltura);
         pauseSprite.setPosition(largura - (pause.getWidth() * ajusteLargura * 3), (float) (altura - (minhocasScore[0].getHeight() * ajusteAltura * 3.5)));
-
-        musicSprite = new Sprite(music);
-        musicSprite.setSize(100 * ajusteLargura, 100 * ajusteAltura);
-        musicSprite.setPosition(largura - (music.getWidth() * ajusteLargura * 3 * 2), (float) (altura - (minhocasScore[0].getHeight() * ajusteAltura * 3.5)));
 
         setSounds();
     }
@@ -446,6 +464,10 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         }
         batch.draw(pause, largura - (pause.getWidth() * ajusteLargura * 3), (float) (altura - (minhocasScore[0].getHeight() * ajusteAltura * 3.5)), 100 * ajusteLargura, 100 * ajusteAltura);
         batch.draw(music, largura - (music.getWidth() * ajusteLargura * 3 * 2), (float) (altura - (minhocasScore[0].getHeight() * ajusteAltura * 3.5)), 100 * ajusteLargura, 100 * ajusteAltura);
+
+        musicSprite = new Sprite(music);
+        musicSprite.setSize(100 * ajusteLargura, 100 * ajusteAltura);
+        musicSprite.setPosition(largura - (music.getWidth() * ajusteLargura * 3 * 2), (float) (altura - (minhocasScore[0].getHeight() * ajusteAltura * 3.5)));
 
         //Set retangulos colisoes minhocas
         for (int i = 0; i < minhocasRect.length; i++) {
@@ -621,6 +643,37 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         //Draw algas
         for (Sprite alga : algas) {
             alga.draw(batch);
+        }
+
+        for (int i=0; i<10; i++){
+            if(movimentoBolhaHorizontal[i] >= largura - bolhaInicio.getWidth()){
+                bolhaTocouLado[i] = true;
+            }
+
+            if(movimentoBolhaHorizontal[i] <= 0){
+                bolhaTocouLado[i] = false;
+            }
+
+            if(bolhaTocouLado[i]){
+                movimentoBolhaHorizontal[i] -= Gdx.graphics.getDeltaTime()*posicaoBolha.nextInt(50)+1;
+            }else{
+                movimentoBolhaHorizontal[i] += Gdx.graphics.getDeltaTime()*posicaoBolha.nextInt(200)+1;
+            }
+
+            if(movimentoBolhaVertical[i] >= altura - bolhaInicio.getHeight()){
+                bolhaTocouTopo[i] = true;
+            }
+
+            if(movimentoBolhaVertical[i] <= 0){
+                bolhaTocouTopo[i] = false;
+            }
+
+            if(bolhaTocouTopo[i]){
+                movimentoBolhaVertical[i] -= Gdx.graphics.getDeltaTime()*posicaoBolha.nextInt(100)+1;
+            }else{
+                movimentoBolhaVertical[i] += Gdx.graphics.getDeltaTime()*posicaoBolha.nextInt(150)+1;
+            }
+            batch.draw(bolhaInicio, movimentoBolhaHorizontal[i], movimentoBolhaVertical[i], bolhaInicio.getWidth(), bolhaInicio.getHeight());
         }
 
         batch.end();
