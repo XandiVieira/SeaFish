@@ -60,7 +60,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private Sprite[][] peixes;
     private Sprite[] tubaroes;
     private Sprite[] cardumes;
-    private Sprite[] aguas;
+    private Sprite[] poluicoes;
     private Sprite[] anzois;
     private Sprite[] minhocasScore;
     private Sprite minhocaBonus;
@@ -118,15 +118,14 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private Random distanciaMinhocaRandom, alturaMinhocaRandom;
     private Random sorteioMetrosPorSetor;
     private int metrosPorSetor;
-    private Random numeroAnzol;
-    private int tipoAnzol;
+    private Random numeroPoluicao;
     private Random posicaoBolha;
 
     //Formas para colisões
     private Circle peixeCircle, bolhaCircle;
     private Rectangle peixeRect, minhocaBonusRect;
     private Rectangle[] minhocasRect, piranhasVerticalRect, piranhasHorizontalRect, tubaroesRect;
-    private Circle[] anzoisCircle, aguasSujasCirc;
+    private Circle[] anzoisCircle, poluicoesCircle;
 
     //Numero do peixe
     private int i;
@@ -158,7 +157,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         peixes = new Sprite[3][5];
         tubaroes = new Sprite[3];
         cardumes = new Sprite[3];
-        aguas = new Sprite[1];
+        poluicoes = new Sprite[5];
         anzois = new Sprite[4];
         minhocasScore = new Sprite[10];
         minhocaBonus = new Sprite();
@@ -172,7 +171,6 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         //Sair do anzol
         toques = 0;
         toquesParaSoltar = 0;
-        tipoAnzol = 0;
 
         //Velocidade de queda do peixe começa em 0
         velocidadeQueda = 0;
@@ -199,7 +197,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         bolhaTocouTopo = new boolean[10];
         bolhaTocouLado = new boolean[10];
 
-        for(int i=0; i<10; i++){
+        for (int i = 0; i < 10; i++) {
             bolhaTocouTopo[i] = Boolean.FALSE;
             bolhaTocouLado[i] = Boolean.FALSE;
         }
@@ -217,7 +215,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         piranhasHorizontalRect = new Rectangle[4];
         tubaroesRect = new Rectangle[4];
         anzoisCircle = new Circle[4];
-        aguasSujasCirc = new Circle[4];
+        poluicoesCircle = new Circle[4];
 
         //Numero do peixe
         i = 0;
@@ -262,7 +260,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
 
         setAlgas();
 
-        obstaculos = new Sprite[7];
+        obstaculos = new Sprite[11];
 
         velocidade = 10 * ajusteLargura;
         for (int i = 0; i < alturaObstaculo.length; i++) {
@@ -278,18 +276,22 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         movimentoBolhaVertical = new float[10];
 
         posicaoBolha = new Random();
-        for(int i=0; i<10; i++){
-            movimentoBolhaHorizontal[i] = (float) posicaoBolha.nextInt((int) largura*2);
-            movimentoBolhaVertical[i] = (float) posicaoBolha.nextInt((int) altura*2);
+        for (int i = 0; i < 10; i++) {
+            movimentoBolhaHorizontal[i] = (float) posicaoBolha.nextInt((int) largura * 2);
+            movimentoBolhaVertical[i] = (float) posicaoBolha.nextInt((int) altura * 2);
         }
 
         obstaculos[0] = cardumes[0];
         obstaculos[1] = tubaroes[0];
-        obstaculos[2] = aguas[0];
-        obstaculos[3] = anzois[0];
-        obstaculos[4] = anzois[1];
-        obstaculos[5] = anzois[2];
-        obstaculos[6] = anzois[3];
+        obstaculos[2] = poluicoes[0];
+        obstaculos[3] = poluicoes[1];
+        obstaculos[4] = poluicoes[2];
+        obstaculos[5] = poluicoes[3];
+        obstaculos[6] = poluicoes[4];
+        obstaculos[7] = anzois[0];
+        obstaculos[8] = anzois[1];
+        obstaculos[9] = anzois[2];
+        obstaculos[10] = anzois[3];
 
         posicaoMovimentoObstaculoHorizontal = new float[4];
 
@@ -315,12 +317,12 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         distanciaMinhocaRandom = new Random();
         alturaMinhocaRandom = new Random();
         sorteioMetrosPorSetor = new Random();
-        numeroAnzol = new Random();
+        numeroPoluicao = new Random();
 
         for (int i = 0; i < piranhasHorizontalRect.length; i++) {
             piranhasVerticalRect[i] = new Rectangle();
             piranhasHorizontalRect[i] = new Rectangle();
-            aguasSujasCirc[i] = new Circle();
+            poluicoesCircle[i] = new Circle();
             tubaroesRect[i] = new Rectangle();
             minhocasRect[i] = new Rectangle();
             anzoisCircle[i] = new Circle();
@@ -389,10 +391,14 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             variaCardume();
             variaTubarao();
 
-            //controla a velocidade de queda do peixe
+            //controla a velocidade do jogo
             if (iniciado) {
                 if (velocidade < 33) {
-                    velocidade += (float) 0.1 / 100;
+                    velocidade += (float) 0.001;
+                    Gdx.app.log("Velocidade:", " " + velocidade);
+                    if (velocidade >= 33) {
+                        Gdx.app.log("Distância:", " " + metrosScore);
+                    }
                 }
             }
 
@@ -535,7 +541,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             batch.draw(minhocasScore[i - 1], (float) (largura - (minhocasScore[i - 1].getWidth() * ajusteLargura * i * 1.5)), (float) (altura - minhocasScore[i - 1].getHeight() * ajusteAltura * 1.5), minhocasScore[i - 1].getWidth() * ajusteLargura, minhocasScore[i - 1].getHeight() * ajusteAltura);
         }
         if (vidaExtra) {
-            batch.draw(bolha, (float) (largura - (minhocaBonus.getWidth() * ajusteLargura * (numMinhocas+2) * 1.5)), (float) (altura - minhocaBonus.getHeight() * ajusteAltura * 1.5), bolha.getTexture().getWidth() * ajusteLargura, bolha.getTexture().getHeight() * ajusteAltura);
+            batch.draw(bolha, (float) (largura - (minhocaBonus.getWidth() * ajusteLargura * (numMinhocas + 2) * 1.5)), (float) (altura - minhocaBonus.getHeight() * ajusteAltura * 1.3), bolha.getTexture().getWidth() * ajusteLargura, bolha.getTexture().getHeight() * ajusteAltura);
         }
 
         algas[0].draw(batch);
@@ -645,33 +651,33 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             alga.draw(batch);
         }
 
-        for (int i=0; i<10; i++){
-            if(movimentoBolhaHorizontal[i] >= largura - bolhaInicio.getWidth()){
+        for (int i = 0; i < 10; i++) {
+            if (movimentoBolhaHorizontal[i] >= largura - bolhaInicio.getWidth()) {
                 bolhaTocouLado[i] = true;
             }
 
-            if(movimentoBolhaHorizontal[i] <= 0){
+            if (movimentoBolhaHorizontal[i] <= 0) {
                 bolhaTocouLado[i] = false;
             }
 
-            if(bolhaTocouLado[i]){
-                movimentoBolhaHorizontal[i] -= Gdx.graphics.getDeltaTime()*posicaoBolha.nextInt(50)+1;
-            }else{
-                movimentoBolhaHorizontal[i] += Gdx.graphics.getDeltaTime()*posicaoBolha.nextInt(200)+1;
+            if (bolhaTocouLado[i]) {
+                movimentoBolhaHorizontal[i] -= Gdx.graphics.getDeltaTime() * posicaoBolha.nextInt(50) + 1;
+            } else {
+                movimentoBolhaHorizontal[i] += Gdx.graphics.getDeltaTime() * posicaoBolha.nextInt(200) + 1;
             }
 
-            if(movimentoBolhaVertical[i] >= altura - bolhaInicio.getHeight()){
+            if (movimentoBolhaVertical[i] >= altura - bolhaInicio.getHeight()) {
                 bolhaTocouTopo[i] = true;
             }
 
-            if(movimentoBolhaVertical[i] <= 0){
+            if (movimentoBolhaVertical[i] <= 0) {
                 bolhaTocouTopo[i] = false;
             }
 
-            if(bolhaTocouTopo[i]){
-                movimentoBolhaVertical[i] -= Gdx.graphics.getDeltaTime()*posicaoBolha.nextInt(100)+1;
-            }else{
-                movimentoBolhaVertical[i] += Gdx.graphics.getDeltaTime()*posicaoBolha.nextInt(150)+1;
+            if (bolhaTocouTopo[i]) {
+                movimentoBolhaVertical[i] -= Gdx.graphics.getDeltaTime() * posicaoBolha.nextInt(100) + 1;
+            } else {
+                movimentoBolhaVertical[i] += Gdx.graphics.getDeltaTime() * posicaoBolha.nextInt(150) + 1;
             }
             batch.draw(bolhaInicio, movimentoBolhaHorizontal[i], movimentoBolhaVertical[i], bolhaInicio.getWidth(), bolhaInicio.getHeight());
         }
@@ -879,23 +885,24 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             }
 
             if (Gdx.input.justTouched()) {
-                switch (tipoAnzol) {
+                switch ((int) circle - 1) {
                     case 0:
                         toquesParaSoltar = 50;
                         break;
                     case 1:
-                        toquesParaSoltar = 100;
+                        toquesParaSoltar = 85;
                         break;
                     case 2:
-                        toquesParaSoltar = 150;
+                        toquesParaSoltar = 115;
                         break;
                     case 3:
-                        toquesParaSoltar = 200;
+                        toquesParaSoltar = 150;
                         break;
                     default:
                         toquesParaSoltar = 50;
                 }
                 toques++;
+                Gdx.app.log("Toques:", " "+toques);
                 if (toques >= toquesParaSoltar) {
                     posicaoInicialVertical -= 30;
                     posicaoMovimentoObstaculoHorizontal[0] = largura;
@@ -993,8 +1000,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
                 Intersector.overlaps(peixeCircle, piranhasVerticalRect[2]) || Intersector.overlaps(peixeCircle, piranhasVerticalRect[3]) ||
                 Intersector.overlaps(peixeCircle, tubaroesRect[0]) || Intersector.overlaps(peixeCircle, tubaroesRect[1]) ||
                 Intersector.overlaps(peixeCircle, tubaroesRect[2]) || Intersector.overlaps(peixeCircle, tubaroesRect[3]) ||
-                Intersector.overlaps(peixeCircle, aguasSujasCirc[0]) || Intersector.overlaps(peixeCircle, aguasSujasCirc[1]) ||
-                Intersector.overlaps(peixeCircle, aguasSujasCirc[2]) || Intersector.overlaps(peixeCircle, aguasSujasCirc[3])) {
+                Intersector.overlaps(peixeCircle, poluicoesCircle[0]) || Intersector.overlaps(peixeCircle, poluicoesCircle[1]) ||
+                Intersector.overlaps(peixeCircle, poluicoesCircle[2]) || Intersector.overlaps(peixeCircle, poluicoesCircle[3])) {
 
             isColiding = true;
 
@@ -1052,9 +1059,9 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             piranhasHorizontalRect[0].set(posicaoMovimentoObstaculoHorizontal[0], alturaObstaculo[0] + obstaculos[numObstaculo[0]].getHeight() * ajusteAltura / 3, obstaculos[numObstaculo[0]].getWidth() * ajusteLargura, (obstaculos[numObstaculo[0]].getHeight() * ajusteAltura / 3));
         } else if (numObstaculo[0] == 1) {
             tubaroesRect[0].set(posicaoMovimentoObstaculoHorizontal[0] + obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 9, (float) (alturaObstaculo[0] + obstaculos[numObstaculo[0]].getHeight() * ajusteAltura / 4.5), (float) (obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 1.5), (float) (obstaculos[numObstaculo[0]].getHeight() * ajusteAltura / 2.5));
-        } else if (numObstaculo[0] == 2) {
-            aguasSujasCirc[0].set(posicaoMovimentoObstaculoHorizontal[0] + obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2, alturaObstaculo[0] + obstaculos[numObstaculo[0]].getHeight() * ajusteAltura / 2, obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2);
-        } else if (numObstaculo[0] == 3 || numObstaculo[0] == 4 || numObstaculo[0] == 5 || numObstaculo[0] == 6) {
+        } else if (numObstaculo[0] == 2 || numObstaculo[0] == 3 || numObstaculo[0] == 4 || numObstaculo[0] == 5 || numObstaculo[0] == 6) {
+            poluicoesCircle[0].set(posicaoMovimentoObstaculoHorizontal[0] + obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2, alturaObstaculo[0] + obstaculos[numObstaculo[0]].getHeight() * ajusteAltura / 2, obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2);
+        } else if (numObstaculo[0] == 7 || numObstaculo[0] == 8 || numObstaculo[0] == 9 || numObstaculo[0] == 10) {
             anzoisCircle[0].set(posicaoMovimentoObstaculoHorizontal[0] + obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2, alturaObstaculo[0] + obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2, (obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2));
         }
 
@@ -1063,9 +1070,9 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             piranhasHorizontalRect[1].set(posicaoMovimentoObstaculoHorizontal[1], alturaObstaculo[1] + obstaculos[numObstaculo[1]].getHeight() * ajusteAltura / 3, obstaculos[numObstaculo[1]].getWidth() * ajusteLargura, (obstaculos[numObstaculo[1]].getHeight() * ajusteAltura / 3));
         } else if (numObstaculo[1] == 1) {
             tubaroesRect[1].set(posicaoMovimentoObstaculoHorizontal[1] + obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 9, (float) (alturaObstaculo[1] + obstaculos[numObstaculo[1]].getHeight() * ajusteAltura / 4.5), (float) (obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 1.5), (float) (obstaculos[numObstaculo[1]].getHeight() * ajusteAltura / 2.5));
-        } else if (numObstaculo[1] == 2) {
-            aguasSujasCirc[1].set(posicaoMovimentoObstaculoHorizontal[1] + obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2, alturaObstaculo[1] + obstaculos[numObstaculo[1]].getHeight() * ajusteAltura / 2, obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2);
-        } else if (numObstaculo[1] == 3 || numObstaculo[1] == 4 || numObstaculo[1] == 5 || numObstaculo[1] == 6) {
+        } else if (numObstaculo[1] == 2 || numObstaculo[1] == 3 || numObstaculo[1] == 4 || numObstaculo[1] == 5 || numObstaculo[1] == 6) {
+            poluicoesCircle[1].set(posicaoMovimentoObstaculoHorizontal[1] + obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2, alturaObstaculo[1] + obstaculos[numObstaculo[1]].getHeight() * ajusteAltura / 2, obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2);
+        } else if (numObstaculo[1] == 7 || numObstaculo[1] == 8 || numObstaculo[1] == 9 || numObstaculo[1] == 10) {
             anzoisCircle[1].set(posicaoMovimentoObstaculoHorizontal[1] + obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2, alturaObstaculo[1] + obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2, (obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2));
         }
 
@@ -1074,9 +1081,9 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             piranhasHorizontalRect[2].set(posicaoMovimentoObstaculoHorizontal[2], alturaObstaculo[2] + obstaculos[numObstaculo[2]].getHeight() * ajusteAltura / 3, obstaculos[numObstaculo[2]].getWidth() * ajusteLargura, (obstaculos[numObstaculo[2]].getHeight() * ajusteAltura / 3));
         } else if (numObstaculo[2] == 1) {
             tubaroesRect[2].set(posicaoMovimentoObstaculoHorizontal[2] + obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 9, (float) (alturaObstaculo[2] + obstaculos[numObstaculo[2]].getHeight() * ajusteAltura / 4.5), (float) (obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 1.5), (float) (obstaculos[numObstaculo[2]].getHeight() * ajusteAltura / 2.5));
-        } else if (numObstaculo[2] == 2) {
-            aguasSujasCirc[2].set(posicaoMovimentoObstaculoHorizontal[2] + obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2, alturaObstaculo[2] + obstaculos[numObstaculo[2]].getHeight() * ajusteAltura / 2, obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2);
-        } else if (numObstaculo[2] == 3 || numObstaculo[2] == 4 || numObstaculo[2] == 5 || numObstaculo[2] == 6) {
+        } else if (numObstaculo[2] == 2 || numObstaculo[2] == 3 || numObstaculo[2] == 4 || numObstaculo[2] == 5 || numObstaculo[2] == 6) {
+            poluicoesCircle[2].set(posicaoMovimentoObstaculoHorizontal[2] + obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2, alturaObstaculo[2] + obstaculos[numObstaculo[2]].getHeight() * ajusteAltura / 2, obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2);
+        } else if (numObstaculo[2] == 7 || numObstaculo[2] == 8 || numObstaculo[2] == 9 || numObstaculo[2] == 10) {
             anzoisCircle[2].set(posicaoMovimentoObstaculoHorizontal[2] + obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2, alturaObstaculo[2] + obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2, (obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2));
         }
 
@@ -1085,9 +1092,9 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             piranhasHorizontalRect[3].set(posicaoMovimentoObstaculoHorizontal[3], alturaObstaculo[3] + obstaculos[numObstaculo[3]].getHeight() * ajusteAltura / 3, obstaculos[numObstaculo[3]].getWidth() * ajusteLargura, (obstaculos[numObstaculo[3]].getHeight() * ajusteAltura / 3));
         } else if (numObstaculo[3] == 1) {
             tubaroesRect[3].set(posicaoMovimentoObstaculoHorizontal[3] + obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 9, (float) (alturaObstaculo[3] + obstaculos[numObstaculo[3]].getHeight() * ajusteAltura / 4.5), (float) (obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 1.5), (float) (obstaculos[numObstaculo[3]].getHeight() * ajusteAltura / 2.5));
-        } else if (numObstaculo[3] == 2) {
-            aguasSujasCirc[3].set(posicaoMovimentoObstaculoHorizontal[3] + obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2, alturaObstaculo[3] + obstaculos[numObstaculo[3]].getHeight() * ajusteAltura / 2, obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2);
-        } else if (numObstaculo[3] == 3 || numObstaculo[3] == 4 || numObstaculo[3] == 5 || numObstaculo[3] == 6) {
+        } else if (numObstaculo[3] == 2 || numObstaculo[3] == 3 || numObstaculo[3] == 4 || numObstaculo[3] == 5 || numObstaculo[3] == 6) {
+            poluicoesCircle[3].set(posicaoMovimentoObstaculoHorizontal[3] + obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2, alturaObstaculo[3] + obstaculos[numObstaculo[3]].getHeight() * ajusteAltura / 2, obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2);
+        } else if (numObstaculo[3] == 7 || numObstaculo[3] == 8 || numObstaculo[3] == 9 || numObstaculo[3] == 10) {
             anzoisCircle[3].set(posicaoMovimentoObstaculoHorizontal[3] + obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2, alturaObstaculo[3] + obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2, (obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2));
         }
     }
@@ -1106,18 +1113,20 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
                     } else if (numObstaculo[i] >= 4 && numObstaculo[i] <= 6) {
                         numObstaculo[i] = 1;
                     } else if (numObstaculo[i] >= 7 && numObstaculo[i] <= 8) {
-                        numObstaculo[i] = 2;
+                        numObstaculo[i] = numeroPoluicao.nextInt(5) + 2;
                     } else if (numObstaculo[i] == 9) {
-                        numObstaculo[i] = tipoAnzol = numeroAnzol.nextInt(4) + 3;
+                        numObstaculo[i] = i + 7;
                     }
                 } else {
                     if (obstaculoAtualSetor == 3) {
-                        numObstaculo[i] = numeroAnzol.nextInt(4) + 3;
+                        numObstaculo[i] = i + 7;
+                    } else if (obstaculoAtualSetor == 2) {
+                        numObstaculo[i] = numeroPoluicao.nextInt(5) + 2;
                     } else {
                         numObstaculo[i] = obstaculoAtualSetor;
                     }
                 }
-                if (numObstaculo[i] == 3 || numObstaculo[i] == 4 || numObstaculo[i] == 5 || numObstaculo[i] == 6) {
+                if (numObstaculo[i] == 7 || numObstaculo[i] == 8 || numObstaculo[i] == 9 || numObstaculo[i] == 10) {
                     alturaObstaculo[i] = alturaObstaculoRandom.nextInt((int) (obstaculos[numObstaculo[i]].getHeight() * ajusteAltura / 1.5));
                 } else {
                     alturaObstaculo[i] = alturaObstaculoRandom.nextInt((int) (altura - obstaculos[numObstaculo[i]].getHeight() * ajusteAltura / 1.5));
@@ -1212,7 +1221,11 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         cardumes[1] = new Sprite(new Texture("imagens/piranhas2.png"));
         tubaroes[0] = new Sprite(new Texture("imagens/tubarao.png"));
         tubaroes[1] = new Sprite(new Texture("imagens/tubaraoinimigo2.png"));
-        aguas[0] = new Sprite(new Texture("imagens/aguasuja.png"));
+        poluicoes[0] = new Sprite(new Texture("imagens/aguasuja.png"));
+        poluicoes[1] = new Sprite(new Texture("imagens/canudo.png"));
+        poluicoes[2] = new Sprite(new Texture("imagens/garrafa.png"));
+        poluicoes[3] = new Sprite(new Texture("imagens/pneu.png"));
+        poluicoes[4] = new Sprite(new Texture("imagens/plastico.png"));
         anzois[0] = new Sprite(new Texture("imagens/anzol1.png"));
         anzois[1] = new Sprite(new Texture("imagens/anzol2.png"));
         anzois[2] = new Sprite(new Texture("imagens/anzol3.png"));
