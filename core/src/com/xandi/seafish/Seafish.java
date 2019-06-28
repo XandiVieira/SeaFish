@@ -77,6 +77,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private float posicaoInicialVertical;
     private float[] movimentoBolhaHorizontal;
     private float[] movimentoBolhaVertical;
+    private float[] movimentoAnzolVertical;
 
     //counters
     private int estado; //0=menu - 1=iniciado
@@ -108,6 +109,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private boolean voltando;
     private boolean vidaExtra;
     private boolean[] bolhaTocouTopo;
+    private boolean[] anzolTocouTopo;
     private boolean[] bolhaTocouLado;
 
     //Sorteios
@@ -205,6 +207,11 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
 
         bolhaTocouTopo = new boolean[10];
         bolhaTocouLado = new boolean[10];
+        anzolTocouTopo = new boolean[4];
+
+        for(int i=0; i<anzolTocouTopo.length; i++){
+            anzolTocouTopo[i] = Boolean.FALSE;
+        }
 
         for (int i = 0; i < 10; i++) {
             bolhaTocouTopo[i] = Boolean.FALSE;
@@ -283,6 +290,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         posicaoInicialVertical = altura / 2;
         movimentoBolhaHorizontal = new float[10];
         movimentoBolhaVertical = new float[10];
+        movimentoAnzolVertical = new float[4];
 
         posicaoBolha = new Random();
         for (int i = 0; i < 10; i++) {
@@ -477,8 +485,15 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         batch.begin();
         batch.draw(fundo[contaFundo], 0, 0, largura, altura);
         batch.draw(peixes[i][variacaoPeixe], POSICAO_HORIZONTAL_PEIXE, posicaoInicialVertical, peixes[i][variacaoPeixe].getWidth() * ajusteLargura, peixes[i][variacaoPeixe].getHeight() * ajusteAltura);
+        if(!voltando){
+            sobeDesceAnzol();
+        }
         for (int i = 0; i < numObstaculo.length; i++) {
-            batch.draw(obstaculos[numObstaculo[i]], posicaoMovimentoObstaculoHorizontal[i], alturaObstaculo[i], obstaculos[numObstaculo[i]].getWidth() * ajusteLargura, obstaculos[numObstaculo[i]].getHeight() * ajusteAltura);
+            if(numObstaculo[i] > 6){
+                batch.draw(obstaculos[numObstaculo[i]], posicaoMovimentoObstaculoHorizontal[i], movimentoAnzolVertical[i], obstaculos[numObstaculo[i]].getWidth() * ajusteLargura, obstaculos[numObstaculo[i]].getHeight() * ajusteAltura);
+            }else{
+                batch.draw(obstaculos[numObstaculo[i]], posicaoMovimentoObstaculoHorizontal[i], alturaObstaculo[i], obstaculos[numObstaculo[i]].getWidth() * ajusteLargura, obstaculos[numObstaculo[i]].getHeight() * ajusteAltura);
+            }
         }
         batch.draw(pause, largura - (pause.getWidth() * ajusteLargura * 3), (float) (altura - (minhocasScore[0].getHeight() * ajusteAltura * 3.5)), 100 * ajusteLargura, 100 * ajusteAltura);
         batch.draw(music, largura - (music.getWidth() * ajusteLargura * 3 * 2), (float) (altura - (minhocasScore[0].getHeight() * ajusteAltura * 3.5)), 100 * ajusteLargura, 100 * ajusteAltura);
@@ -697,6 +712,26 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         selecionaPeixe();
     }
 
+    private void sobeDesceAnzol(){
+        for(int i=0; i<anzolTocouTopo.length; i++){
+            if (movimentoAnzolVertical[i] >= altura - 10) {
+                anzolTocouTopo[i] = true;
+            }
+
+            if (movimentoAnzolVertical[i] <= 0) {
+                anzolTocouTopo[i] = false;
+            }
+
+            if(!pausa){
+                if (anzolTocouTopo[i]) {
+                    movimentoAnzolVertical[i] -= (velocidade/2);
+                } else {
+                    movimentoAnzolVertical[i] += (velocidade/2);
+                }
+            }
+        }
+    }
+
     private void variaTubarao() {
         if (variacaoTubarao > 1) {
             variacaoTubarao = 0;
@@ -897,13 +932,13 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
                         toquesParaSoltar = 50;
                         break;
                     case 1:
-                        toquesParaSoltar = 85;
+                        toquesParaSoltar = 65;
                         break;
                     case 2:
-                        toquesParaSoltar = 115;
+                        toquesParaSoltar = 80;
                         break;
                     case 3:
-                        toquesParaSoltar = 150;
+                        toquesParaSoltar = 95;
                         break;
                     default:
                         toquesParaSoltar = 50;
@@ -1073,7 +1108,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         } else if (numObstaculo[0] == 2 || numObstaculo[0] == 3 || numObstaculo[0] == 4 || numObstaculo[0] == 5 || numObstaculo[0] == 6) {
             poluicoesCircle[0].set(posicaoMovimentoObstaculoHorizontal[0] + obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2, alturaObstaculo[0] + obstaculos[numObstaculo[0]].getHeight() * ajusteAltura / 2, obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2);
         } else if (numObstaculo[0] == 7 || numObstaculo[0] == 8 || numObstaculo[0] == 9 || numObstaculo[0] == 10) {
-            anzoisCircle[0].set(posicaoMovimentoObstaculoHorizontal[0] + obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2, alturaObstaculo[0] + obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2, (obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2));
+            anzoisCircle[0].set(posicaoMovimentoObstaculoHorizontal[0] + obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2, movimentoAnzolVertical[0] + obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2, (obstaculos[numObstaculo[0]].getWidth() * ajusteLargura / 2));
         }
 
         if (numObstaculo[1] == 0) {
@@ -1084,7 +1119,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         } else if (numObstaculo[1] == 2 || numObstaculo[1] == 3 || numObstaculo[1] == 4 || numObstaculo[1] == 5 || numObstaculo[1] == 6) {
             poluicoesCircle[1].set(posicaoMovimentoObstaculoHorizontal[1] + obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2, alturaObstaculo[1] + obstaculos[numObstaculo[1]].getHeight() * ajusteAltura / 2, obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2);
         } else if (numObstaculo[1] == 7 || numObstaculo[1] == 8 || numObstaculo[1] == 9 || numObstaculo[1] == 10) {
-            anzoisCircle[1].set(posicaoMovimentoObstaculoHorizontal[1] + obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2, alturaObstaculo[1] + obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2, (obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2));
+            anzoisCircle[1].set(posicaoMovimentoObstaculoHorizontal[1] + obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2, movimentoAnzolVertical[1] + obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2, (obstaculos[numObstaculo[1]].getWidth() * ajusteLargura / 2));
         }
 
         if (numObstaculo[2] == 0) {
@@ -1095,7 +1130,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         } else if (numObstaculo[2] == 2 || numObstaculo[2] == 3 || numObstaculo[2] == 4 || numObstaculo[2] == 5 || numObstaculo[2] == 6) {
             poluicoesCircle[2].set(posicaoMovimentoObstaculoHorizontal[2] + obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2, alturaObstaculo[2] + obstaculos[numObstaculo[2]].getHeight() * ajusteAltura / 2, obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2);
         } else if (numObstaculo[2] == 7 || numObstaculo[2] == 8 || numObstaculo[2] == 9 || numObstaculo[2] == 10) {
-            anzoisCircle[2].set(posicaoMovimentoObstaculoHorizontal[2] + obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2, alturaObstaculo[2] + obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2, (obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2));
+            anzoisCircle[2].set(posicaoMovimentoObstaculoHorizontal[2] + obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2, movimentoAnzolVertical[2] + obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2, (obstaculos[numObstaculo[2]].getWidth() * ajusteLargura / 2));
         }
 
         if (numObstaculo[3] == 0) {
@@ -1106,7 +1141,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         } else if (numObstaculo[3] == 2 || numObstaculo[3] == 3 || numObstaculo[3] == 4 || numObstaculo[3] == 5 || numObstaculo[3] == 6) {
             poluicoesCircle[3].set(posicaoMovimentoObstaculoHorizontal[3] + obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2, alturaObstaculo[3] + obstaculos[numObstaculo[3]].getHeight() * ajusteAltura / 2, obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2);
         } else if (numObstaculo[3] == 7 || numObstaculo[3] == 8 || numObstaculo[3] == 9 || numObstaculo[3] == 10) {
-            anzoisCircle[3].set(posicaoMovimentoObstaculoHorizontal[3] + obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2, alturaObstaculo[3] + obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2, (obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2));
+            anzoisCircle[3].set(posicaoMovimentoObstaculoHorizontal[3] + obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2, movimentoAnzolVertical[3] + obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2, (obstaculos[numObstaculo[3]].getWidth() * ajusteLargura / 2));
         }
     }
 
@@ -1139,6 +1174,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
                 }
                 if (numObstaculo[i] == 7 || numObstaculo[i] == 8 || numObstaculo[i] == 9 || numObstaculo[i] == 10) {
                     alturaObstaculo[i] = alturaObstaculoRandom.nextInt((int) (obstaculos[numObstaculo[i]].getHeight() * ajusteAltura / 1.5));
+                    movimentoAnzolVertical[i] = alturaObstaculo[i];
                 } else {
                     alturaObstaculo[i] = alturaObstaculoRandom.nextInt((int) (altura - obstaculos[numObstaculo[i]].getHeight() * ajusteAltura / 1.5));
                 }
