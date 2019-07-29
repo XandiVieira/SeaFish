@@ -36,7 +36,10 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private SpriteBatch batch;
 
     //Dimensões
-    private float ajusteAltura, ajusteLargura, largura, altura;
+    private float ajusteAltura;
+    private float ajusteLargura;
+    private float largura;
+    private float altura;
 
     //Score
     private int metragem, velocidadeMetros;
@@ -56,7 +59,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
 
     //imagens
     private Texture telaInicial, gameOverText, reload, pause, startGame, next, back, menuBotao, simBotao, naoBotao, continueText, videoIcon, music, bolhaInicio;
-    private Texture[] fundo;
+    private Texture[] fundo, enfeite;
     private Sprite[][] peixes;
     private Sprite[] tubaroes;
     private Sprite[] cardumes;
@@ -78,6 +81,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private float[] movimentoBolhaHorizontal;
     private float[] movimentoBolhaVertical;
     private float[] movimentoAnzolVertical;
+    private float movimentoEnfeiteHorizontal;
 
     //counters
     private int estado; //0=menu - 1=iniciado
@@ -88,6 +92,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private int obstaculoAtualSetor;
     private int toques;
     private int toquesParaSoltar;
+    private int contaEnfeite;
 
     //Controllers
     private boolean iniciado; //Começar os movimentos depois do primeiro toque
@@ -172,10 +177,11 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         double larguraPadrao = 1920;
 
         fundo = new Texture[9];
+        enfeite = new Texture[7];
 
         //Inicializa os Sprites
         peixes = new Sprite[7][5];
-        tubaroes = new Sprite[3];
+        tubaroes = new Sprite[2];
         cardumes = new Sprite[3];
         poluicoes = new Sprite[5];
         anzois = new Sprite[4];
@@ -191,6 +197,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         //Sair do anzol
         toques = 0;
         toquesParaSoltar = 0;
+
+        contaEnfeite = 0;
 
         //Velocidade de queda do peixe começa em 0
         velocidadeQueda = 0;
@@ -320,6 +328,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         obstaculos[10] = anzois[3];
 
         posicaoMovimentoObstaculoHorizontal = new float[4];
+        movimentoEnfeiteHorizontal = largura - enfeite[contaEnfeite].getWidth();
 
         numObstaculo = new int[4];
         if (!pausa) {
@@ -433,6 +442,10 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
                 }
             }
 
+            if (movimentoEnfeiteHorizontal < -enfeite[contaEnfeite].getWidth()) {
+                movimentoEnfeiteHorizontal = largura + enfeite[contaEnfeite].getWidth();
+            }
+
             variaCardume();
             variaTubarao();
 
@@ -476,6 +489,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
                 for (int i = 0; i < posicaoMovimentoObstaculoHorizontal.length; i++) {
                     posicaoMovimentoObstaculoHorizontal[i] -= velocidade;
                 }
+                movimentoEnfeiteHorizontal -= velocidade;
                 minhocaBonusHorizontal -= velocidade;
                 bolhaHorizontal -= velocidade;
                 metragem++;
@@ -505,6 +519,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
 
         batch.begin();
         batch.draw(fundo[contaFundo], 0, 0, largura, altura);
+        batch.draw(enfeite[contaEnfeite], movimentoEnfeiteHorizontal, 7, enfeite[contaEnfeite].getWidth() * ajusteLargura, enfeite[contaEnfeite].getHeight() * ajusteAltura);
         batch.draw(peixes[i][variacaoPeixe], POSICAO_HORIZONTAL_PEIXE, posicaoInicialVertical, peixes[i][variacaoPeixe].getWidth() * ajusteLargura, peixes[i][variacaoPeixe].getHeight() * ajusteAltura);
         if (!voltando) {
             sobeDesceAnzol();
@@ -924,6 +939,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
                 }
             }
 
+            movimentoEnfeiteHorizontal += velocidade * VELOCIDADE_OBSTACULO;
+
             if (metrosScore > 0) {
                 sorteiaObstaculoAnterior();
             } else {
@@ -1013,10 +1030,12 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     }
 
     private void mudaFundo() {
-        if (contaFundo <= 7) {
+        if (contaFundo <= 5) {
             contaFundo++;
+            contaEnfeite++;
         } else {
             contaFundo = 0;
+            contaEnfeite = 0;
         }
     }
 
@@ -1027,6 +1046,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             for (int i = 0; i < posicaoMovimentoObstaculoHorizontal.length; i++) {
                 posicaoMovimentoObstaculoHorizontal[i] -= velocidade * (VELOCIDADE_INICIAL);
             }
+            movimentoEnfeiteHorizontal -= velocidade * VELOCIDADE_INICIAL;
             isShark = true;
         } else if (contaMetrosTubarao <= 190) {
             if (contaMetrosTubarao % 5 == 0) {
@@ -1254,8 +1274,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         peixes[2][4] = new Sprite(new Texture("imagens/tubarao32.png"));
 
         if (record < 2000) {
-            peixes[3][0] = new Sprite(new Texture("imagens/sombra4.png"));
-            peixes[3][1] = new Sprite(new Texture("imagens/sombra4.png"));
+            peixes[3][0] = new Sprite(new Texture("imagens/sombra1.png"));
+            peixes[3][1] = new Sprite(new Texture("imagens/sombra1.png"));
         } else {
             peixes[3][0] = new Sprite(new Texture("imagens/peixe4.png"));
             peixes[3][1] = new Sprite(new Texture("imagens/peixe42.png"));
@@ -1265,8 +1285,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         }
 
         if (record < 4000) {
-            peixes[4][0] = new Sprite(new Texture("imagens/sombra5.png"));
-            peixes[4][1] = new Sprite(new Texture("imagens/sombra5.png"));
+            peixes[4][0] = new Sprite(new Texture("imagens/sombra2.png"));
+            peixes[4][1] = new Sprite(new Texture("imagens/sombra2.png"));
         } else {
             peixes[4][0] = new Sprite(new Texture("imagens/peixe5.png"));
             peixes[4][1] = new Sprite(new Texture("imagens/peixe52.png"));
@@ -1276,8 +1296,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         }
 
         if (record < 6000) {
-            peixes[5][0] = new Sprite(new Texture("imagens/sombra6.png"));
-            peixes[5][1] = new Sprite(new Texture("imagens/sombra6.png"));
+            peixes[5][0] = new Sprite(new Texture("imagens/sombra3.png"));
+            peixes[5][1] = new Sprite(new Texture("imagens/sombra3.png"));
         } else {
             peixes[5][0] = new Sprite(new Texture("imagens/peixe6.png"));
             peixes[5][1] = new Sprite(new Texture("imagens/peixe62.png"));
@@ -1287,8 +1307,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         }
 
         if (record < 8000) {
-            peixes[6][0] = new Sprite(new Texture("imagens/sombra7.png"));
-            peixes[6][1] = new Sprite(new Texture("imagens/sombra7.png"));
+            peixes[6][0] = new Sprite(new Texture("imagens/sombra4.png"));
+            peixes[6][1] = new Sprite(new Texture("imagens/sombra4.png"));
         } else {
             peixes[6][0] = new Sprite(new Texture("imagens/peixe7.png"));
             peixes[6][1] = new Sprite(new Texture("imagens/peixe72.png"));
@@ -1308,8 +1328,6 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         fundo[4] = new Texture("imagens/fundo5.png");
         fundo[5] = new Texture("imagens/fundo6.png");
         fundo[6] = new Texture("imagens/fundo7.png");
-        fundo[7] = new Texture("imagens/fundo8.png");
-        fundo[8] = new Texture("imagens/fundo9.png");
         telaInicial = new Texture("imagens/telainicio.png");
         gameOverText = new Texture("imagens/gameover.png");
         continueText = new Texture("imagens/continue.png");
@@ -1326,8 +1344,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         setPeixes();
         cardumes[0] = new Sprite(new Texture("imagens/piranhas.png"));
         cardumes[1] = new Sprite(new Texture("imagens/piranhas2.png"));
-        tubaroes[0] = new Sprite(new Texture("imagens/tubarao.png"));
-        tubaroes[1] = new Sprite(new Texture("imagens/tubaraoinimigo2.png"));
+        tubaroes[0] = new Sprite(new Texture("imagens/tubaraoinimigo2.png"));
+        tubaroes[1] = new Sprite(new Texture("imagens/tubaraoinimigo22.png"));
         poluicoes[0] = new Sprite(new Texture("imagens/aguasuja.png"));
         poluicoes[1] = new Sprite(new Texture("imagens/canudo.png"));
         poluicoes[2] = new Sprite(new Texture("imagens/garrafa.png"));
@@ -1341,6 +1359,13 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             minhocasScore[i] = new Sprite(new Texture("imagens/minhoca.png"));
         }
         minhocaBonus = new Sprite(new Texture("imagens/minhocabonus.png"));
+        enfeite[0] = new Texture("imagens/enfeite1.png");
+        enfeite[1] = new Texture("imagens/enfeite2.png");
+        enfeite[2] = new Texture("imagens/enfeite3.png");
+        enfeite[3] = new Texture("imagens/enfeite4.png");
+        enfeite[4] = new Texture("imagens/enfeite5.png");
+        enfeite[5] = new Texture("imagens/enfeite6.png");
+        enfeite[6] = new Texture("imagens/enfeite7.png");
     }
 
     private void setAlgas() {
