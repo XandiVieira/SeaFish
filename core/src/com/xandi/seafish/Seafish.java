@@ -1333,7 +1333,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         cardumes[1] = new Sprite(new Texture("imagens/piranhas2.png"));
         tubaroes[0] = new Sprite(new Texture("imagens/tubaraoinimigo2.png"));
         tubaroes[1] = new Sprite(new Texture("imagens/tubaraoinimigo22.png"));
-        poluicoes[0] = new Sprite(new Texture("imagens/aguasuja.png"));
+        poluicoes[0] = new Sprite(new Texture("imagens/baiacu.png"));
         poluicoes[1] = new Sprite(new Texture("imagens/canudo.png"));
         poluicoes[2] = new Sprite(new Texture("imagens/garrafa.png"));
         poluicoes[3] = new Sprite(new Texture("imagens/pneu.png"));
