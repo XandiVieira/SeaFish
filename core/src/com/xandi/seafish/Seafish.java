@@ -281,8 +281,10 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         largura = Gdx.graphics.getWidth();
         altura = Gdx.graphics.getHeight();
 
-        ajusteAltura = (float) (altura / alturaPadrao);
-        ajusteLargura = (float) (largura / larguraPadrao);
+        if (ajusteLargura == 0 && ajusteAltura == 0) {
+            ajusteAltura = (float) (altura / alturaPadrao);
+            ajusteLargura = (float) (largura / larguraPadrao);
+        }
 
         metragem = 0;
         alturaObstaculoRandom = new Random();
@@ -1390,11 +1392,11 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
 
         pauseSprite = new Sprite(pause);
         pauseSprite.setSize(150 * ajusteLargura, 150 * ajusteAltura);
-        pauseSprite.setPosition(largura - (pause.getWidth() * 2), (float) (altura - minhocasScore[0].getHeight() * ajusteAltura * 1.5 - (pause.getHeight() * ajusteAltura * 2)));
+        pauseSprite.setPosition((largura - (pause.getWidth() * ajusteLargura * 2)) + ((pauseSprite.getWidth() * ajusteLargura) / 2), (float) (altura - minhocasScore[0].getHeight() * ajusteAltura * 1.5 - (pause.getHeight() * ajusteAltura * 2)));
 
         musicSprite = new Sprite(music);
         musicSprite.setSize(150 * ajusteLargura, 150 * ajusteAltura);
-        musicSprite.setPosition(largura - (pause.getWidth() * 2) - music.getWidth() * 2, (float) (altura - minhocasScore[0].getHeight() * ajusteAltura * 1.5 - (music.getHeight() * ajusteAltura * 2)));
+        musicSprite.setPosition((largura - (pause.getWidth() * ajusteLargura * 2) - music.getWidth() * ajusteLargura * 2) + ((musicSprite.getWidth() * ajusteLargura) / 2), (float) (altura - minhocasScore[0].getHeight() * ajusteAltura * 1.5 - (music.getHeight() * ajusteAltura * 2)));
 
         nextSprite = new Sprite(next);
         nextSprite.setSize(250 * ajusteLargura, 250 * ajusteLargura);
