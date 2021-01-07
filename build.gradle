@@ -1,5 +1,4 @@
 buildscript {
-    
 
     repositories {
         mavenLocal()
@@ -9,10 +8,9 @@ buildscript {
         jcenter()
         google()
     }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.1'
-        
 
+    dependencies {
+        classpath 'com.android.tools.build:gradle:4.0.2'
     }
 }
 
@@ -60,13 +58,12 @@ project(":android") {
         natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-x86"
         natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-x86_64"
         implementation 'com.android.support:appcompat-v7:28.0.0'
-        implementation 'com.google.android.gms:play-services-ads:17.2.0'
+        implementation 'com.google.android.gms:play-services-ads:19.6.0'
     }
 }
 
 project(":core") {
     apply plugin: "java"
-
 
     dependencies {
         implementation "com.badlogicgames.gdx:gdx:$gdxVersion"

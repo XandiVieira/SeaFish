@@ -131,7 +131,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
 
     //Formas para colisões
     private Circle peixeCircle, bolhaCircle;
-    private Rectangle peixeRect, minhocaBonusRect;
+    private Rectangle minhocaBonusRect;
     private Rectangle[] minhocasRect, piranhasVerticalRect, piranhasHorizontalRect, tubaroesRect;
     private Circle[] anzoisCircle, poluicoesCircle;
 
@@ -275,7 +275,6 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         setTextures();
 
         peixeCircle = new Circle();
-        peixeRect = new Rectangle();
         minhocaBonusRect = new Rectangle();
         bolhaCircle = new Circle();
 
@@ -284,7 +283,6 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
 
         ajusteAltura = (float) (altura / alturaPadrao);
         ajusteLargura = (float) (largura / larguraPadrao);
-
 
         metragem = 0;
         alturaObstaculoRandom = new Random();
@@ -484,12 +482,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
                 }
             }
 
-            //Ajusta forma do peixe
-            if (peixes[i][0].getWidth() * ajusteLargura > peixes[i][0].getHeight() * ajusteAltura * 1.5) {
-                peixeRect.set(POSICAO_HORIZONTAL_PEIXE, posicaoInicialVertical, peixes[i][0].getWidth() * ajusteLargura, peixes[i][0].getHeight() * ajusteAltura);
-            } else {
-                peixeCircle.set(POSICAO_HORIZONTAL_PEIXE + peixes[i][0].getWidth() * ajusteLargura / 2, (posicaoInicialVertical + peixes[i][0].getHeight() * ajusteAltura / 2), ((peixes[i][0].getHeight() * ajusteLargura / 2) - peixes[i][0].getHeight() * ajusteAltura / 12));
-            }
+            peixeCircle.set(POSICAO_HORIZONTAL_PEIXE + peixes[i][0].getWidth() * ajusteLargura / 2, (posicaoInicialVertical + peixes[i][0].getHeight() * ajusteAltura / 2), ((peixes[i][0].getHeight() * ajusteLargura / 2) - peixes[i][0].getHeight() * ajusteAltura / 12));
 
             //impede que o peixe passe do topo
             if (posicaoInicialVertical >= ALTURA_TOPO) {
@@ -537,8 +530,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         algas[variacaoAlga].draw(batch);
         algas[2].draw(batch);
         batch.draw(peixes[i][variacaoPeixe], POSICAO_HORIZONTAL_PEIXE, posicaoInicialVertical, peixes[i][variacaoPeixe].getWidth() * ajusteLargura, peixes[i][variacaoPeixe].getHeight() * ajusteAltura);
-        batch.draw(pause, largura - (largura / 15), (float) (altura - minhocasScore[0].getHeight() * ajusteAltura * 1.5 - (pause.getHeight() * ajusteAltura * 2)), 150 * ajusteLargura, 150 * ajusteAltura);
-        batch.draw(music, ((largura - (largura / 15)) - pause.getWidth() * ajusteLargura * 2), (float) (altura - minhocasScore[0].getHeight() * ajusteAltura * 1.5 - (music.getHeight() * ajusteAltura * 2)), 150 * ajusteLargura, 150 * ajusteAltura);
+        batch.draw(pause, largura - (pause.getWidth() * 2), (float) (altura - minhocasScore[0].getHeight() * ajusteAltura * 1.5 - (pause.getHeight() * ajusteAltura * 2)), 150 * ajusteLargura, 150 * ajusteAltura);
+        batch.draw(music, largura - (pause.getWidth() * 2) - music.getWidth() * 2, (float) (altura - minhocasScore[0].getHeight() * ajusteAltura * 1.5 - (music.getHeight() * ajusteAltura * 2)), 150 * ajusteLargura, 150 * ajusteAltura);
         if (!voltando) {
             sobeDesceAnzol();
         }
@@ -700,6 +693,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         }
 
         batch.begin();
+
         batch.draw(telaInicial, 0, 0, largura, altura);
         batch.draw(startGame, (largura / 2) - (startGame.getWidth() * ajusteLargura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)), startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
         algas[variacaoAlga].draw(batch);
@@ -738,6 +732,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             }
             batch.draw(bolhaInicio, movimentoBolhaHorizontal[i], movimentoBolhaVertical[i], bolhaInicio.getWidth() * ajusteLargura, bolhaInicio.getHeight() * ajusteLargura);
         }
+
         batch.end();
 
         controlaRotacaoAlga(false);
@@ -1395,11 +1390,11 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
 
         pauseSprite = new Sprite(pause);
         pauseSprite.setSize(150 * ajusteLargura, 150 * ajusteAltura);
-        pauseSprite.setPosition(largura - (largura / 15), (float) (altura - minhocasScore[0].getHeight() * ajusteAltura * 1.5 - (pause.getHeight() * ajusteAltura * 2)));
+        pauseSprite.setPosition(largura - (pause.getWidth() * 2), (float) (altura - minhocasScore[0].getHeight() * ajusteAltura * 1.5 - (pause.getHeight() * ajusteAltura * 2)));
 
         musicSprite = new Sprite(music);
         musicSprite.setSize(150 * ajusteLargura, 150 * ajusteAltura);
-        musicSprite.setPosition(((largura - (largura / 15)) - pause.getWidth() * ajusteLargura * 2), (float) (altura - minhocasScore[0].getHeight() * ajusteAltura * 1.5 - (music.getHeight() * ajusteAltura * 2)));
+        musicSprite.setPosition(largura - (pause.getWidth() * 2) - music.getWidth() * 2, (float) (altura - minhocasScore[0].getHeight() * ajusteAltura * 1.5 - (music.getHeight() * ajusteAltura * 2)));
 
         nextSprite = new Sprite(next);
         nextSprite.setSize(250 * ajusteLargura, 250 * ajusteLargura);
