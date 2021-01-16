@@ -856,8 +856,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
             algas[2].rotate((float) 0.4 * ajusteLargura);
         }
         if (mudaPosicao) {
-            algas[variacaoAlga].setPosition(posicaoMovimentoObstaculoHorizontal[variacaoAlga], 0 - algas[variacaoAlga].getTexture().getHeight() * ajusteAltura / 5);
-            algas[2].setPosition(posicaoMovimentoObstaculoHorizontal[2], 0 - algas[2].getTexture().getHeight() * ajusteAltura / 5);
+            algas[variacaoAlga].setPosition(posicaoMovimentoObstaculoHorizontal[variacaoAlga], ((-algas[variacaoAlga].getTexture().getHeight()) * ajusteAltura) / 5);
+            algas[2].setPosition(posicaoMovimentoObstaculoHorizontal[2], ((-algas[2].getTexture().getHeight()) * ajusteAltura) / 5);
         }
     }
 

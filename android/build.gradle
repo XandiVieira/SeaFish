@@ -1,4 +1,12 @@
 android {
+    signingConfigs {
+        debug {
+            storeFile file('C:\\Users\\Admin\\Downloads\\seafish.jks')
+            storePassword '30061997'
+            keyAlias 'seafish'
+            keyPassword '30061997'
+        }
+    }
     buildToolsVersion "28.0.3"
     compileSdkVersion 30
     sourceSets {
@@ -20,8 +28,8 @@ android {
         applicationId "com.xandi.seafish"
         minSdkVersion 16
         targetSdkVersion 30
-        versionCode 15
-        versionName "1.7"
+        versionCode 16
+        versionName "1.7.1"
     }
     buildTypes {
         release {
