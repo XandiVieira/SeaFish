@@ -2,5 +2,8 @@
 <resources>
 
     <string name="app_name">Seafish</string>
+    <string name="facebook_app_id">864623771023803</string> <string name="fb_login_protocol_scheme">fb864623771023803</string>
+    <string name="error_login">Login Failed</string>
+
 
 </resources>

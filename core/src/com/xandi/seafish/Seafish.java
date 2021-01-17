@@ -27,10 +27,15 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private AdService handler;
     private GoogleServices googleServices;
 
-    Seafish(AdService handler, GoogleServices googleServices) {
+    private FirebaseAuthentication authentication;
+    private FacebookAuth facebookAuth;
+
+    Seafish(AdService handler, GoogleServices googleServices, FirebaseAuthentication authentication, FacebookAuth facebookAuth) {
         this.handler = handler;
         this.googleServices = googleServices;
         this.googleServices.setVideoEventListener(this);
+        this.authentication = authentication;
+        this.facebookAuth = facebookAuth;
     }
 
     //batch
@@ -55,11 +60,11 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     private float contaMetrosTubarao;
 
     //Formas para sobrepor botoes
-    private Sprite peixe, menuSprite, playSprite, replaySprite, nextSprite, backSprite, simSprite, naoSprite, pauseSprite, musicSprite;
+    private Sprite peixe, menuSprite, playSprite, loginSprite, replaySprite, nextSprite, backSprite, simSprite, naoSprite, pauseSprite, musicSprite;
     private Sprite[] algas;
 
     //imagens
-    private Texture telaInicial, gameOverText, reload, startGame, next, back, menuBotao, simBotao, naoBotao, continueText, videoIcon, bolhaInicio, pause, music;
+    private Texture telaInicial, gameOverText, reload, startGame, loginFb, next, back, menuBotao, simBotao, naoBotao, continueText, videoIcon, bolhaInicio, pause, music;
     private Texture[] fundo, enfeite;
     private Sprite[][] peixes;
     private Sprite[] tubaroes;
@@ -692,12 +697,17 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
                     gameOver = false;
                 }
             }
+
+            if (loginSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
+                facebookAuth.login();
+            }
         }
 
         batch.begin();
 
         batch.draw(telaInicial, 0, 0, largura, altura);
         batch.draw(startGame, (largura / 2) - (startGame.getWidth() * ajusteLargura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)), startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
+        batch.draw(loginFb, (largura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)), startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
         algas[variacaoAlga].draw(batch);
         algas[2].draw(batch);
         batch.draw(back, (largura / 2) - (back.getWidth() * ajusteLargura * 7), ALTURA_SELECT_PEIXE, 250 * ajusteLargura, 250 * ajusteLargura);
@@ -1323,6 +1333,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         videoIcon = new Texture("imagens/video.png");
         naoBotao = new Texture("imagens/no.png");
         startGame = new Texture("imagens/startgame.png");
+        loginFb = new Texture("imagens/loginFb.png");
         next = new Texture("imagens/next.png");
         back = new Texture("imagens/back.png");
         setPeixes();
@@ -1385,6 +1396,10 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         playSprite = new Sprite(startGame);
         playSprite.setSize(startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);   // set size
         playSprite.setPosition((largura / 2) - (startGame.getWidth() * ajusteLargura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)));
+
+        loginSprite = new Sprite(loginFb);
+        loginSprite.setSize(startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);   // set size
+        loginSprite.setPosition((largura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)));
 
         replaySprite = new Sprite(reload);
         replaySprite.setSize(150 * ajusteLargura, 150 * ajusteAltura);

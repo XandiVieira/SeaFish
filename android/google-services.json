@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "741441694989",
+    "project_id": "seafish-ed990",
+    "storage_bucket": "seafish-ed990.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:741441694989:android:21f4423f6f5e5092685444",
+        "android_client_info": {
+          "package_name": "com.xandi.seafish"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "741441694989-3ucboo70nab2eue0o9hip9lkrsa0o4a7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.xandi.seafish",
+            "certificate_hash": "07c54575286f271ec01b8f1e2df56d14a28f8b12"
+          }
+        },
+        {
+          "client_id": "741441694989-pu46jlbmhafs13umd6dsb1vqovgjancs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAP_2MF4xyxZ0_FOfjCRA4XQGDkq_NC-ic"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "741441694989-pu46jlbmhafs13umd6dsb1vqovgjancs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

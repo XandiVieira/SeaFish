@@ -1,6 +1,7 @@
 package com.xandi.seafish;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,9 +10,19 @@ import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
 
+import androidx.annotation.NonNull;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.appevents.AppEventsLogger;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
@@ -21,14 +32,38 @@ import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.reward.RewardItem;
 import com.google.android.gms.ads.reward.RewardedVideoAd;
 import com.google.android.gms.ads.reward.RewardedVideoAdListener;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FacebookAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.xandi.seafish.activity.Constants;
+import com.xandi.seafish.activity.Ranking;
+import com.xandi.seafish.model.User;
 
-public class AndroidLauncher extends AndroidApplication implements AdService, GoogleServices, RewardedVideoAdListener {
+import java.util.Arrays;
+import java.util.UUID;
+
+public class AndroidLauncher extends AndroidApplication implements AdService, GoogleServices, RewardedVideoAdListener, FirebaseAuthentication, FacebookAuth {
 
     private static final String TAG = "AndroidLauncher";
     private final int SHOW_ADS = 1;
     private final int HIDE_ADS = 0;
     AdView bannerAd;
     private boolean is_video_ad_loaded;
+
+    private CallbackManager callbackManager;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseAuth.AuthStateListener firebaseAuthListener;
+    private boolean isLoggedIn = false;
+    private User user;
+    private DatabaseReference mUserDatabaseRef;
+    private FirebaseUser firebaseUser;
 
     @SuppressLint("HandlerLeak")
     protected Handler handler = new Handler() {
@@ -77,13 +112,19 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //fullScreencall();
-
         RelativeLayout layout = new RelativeLayout(this);
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-        View gameView = initializeForView(new Seafish(this, this), config);
+        View gameView = initializeForView(new Seafish(this, this, this, this), config);
 
         layout.addView(gameView);
+
+        startFirebaseInstances();
+        firebaseAuthListener = firebaseAuth -> {
+            firebaseUser = firebaseAuth.getCurrentUser();
+            isLoggedIn = firebaseUser != null;
+        };
+        firebaseAuth = FirebaseAuth.getInstance();
+        firebaseAuth.addAuthStateListener(firebaseAuthListener);
 
         bannerAd = new AdView(this);
         bannerAd.setAdListener(new AdListener() {
@@ -92,7 +133,6 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
                 Log.i(TAG, "Ad Loaded...");
             }
         });
-
 
         bannerAd.setAdSize(AdSize.SMART_BANNER);
         bannerAd.setAdUnitId(AD_UNIT_ID_BANNER);
@@ -110,6 +150,13 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
         setupInterstitialAds();
         setupRewarded();
+    }
+
+    private void startFirebaseInstances() {
+        FirebaseApp.initializeApp(this);
+        FirebaseDatabase mFirebaseDatabase = FirebaseDatabase.getInstance();
+        DatabaseReference mDatabaseRef = mFirebaseDatabase.getReference();
+        mUserDatabaseRef = mDatabaseRef.child(Constants.DATABASE_REF_USER);
     }
 
     public void loadRewardedVideoAd() {
@@ -240,5 +287,83 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     @Override
     public void onRewardedVideoCompleted() {
 
+    }
+
+    @Override
+    public void callRanking() {
+        startActivity(new Intent(getApplicationContext(), Ranking.class));
+    }
+
+    @Override
+    public boolean isLoggedIn() {
+        return isLoggedIn;
+    }
+
+    @Override
+    public void login() {
+        callbackManager = CallbackManager.Factory.create();
+
+        LoginButton loginButton = new LoginButton(getApplicationContext());
+        loginButton.performClick();
+        loginButton.setReadPermissions(Arrays.asList("email", "public_profile"));
+
+        // Callback registration
+        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                handleFacebookAccessToken(loginResult.getAccessToken());
+            }
+
+            @Override
+            public void onCancel() {
+                // App code
+            }
+
+            @Override
+            public void onError(FacebookException exception) {
+
+            }
+        });
+    }
+
+    private void handleFacebookAccessToken(AccessToken accessToken) {
+        AuthCredential credential = FacebookAuthProvider.getCredential(accessToken.getToken());
+        firebaseAuth.signInWithCredential(credential).addOnSuccessListener(authResult -> {
+            getUserDataFromFirebase(accessToken.getToken());
+        });
+    }
+
+    private void getUserDataFromFirebase(String token) {
+        mUserDatabaseRef.child(token).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                mUserDatabaseRef.child(token).removeEventListener(this);
+                mUserDatabaseRef.removeEventListener(this);
+                user = dataSnapshot.getValue(User.class);
+                if (user == null || user.getUid() == null) {
+                    createUser(token);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void createUser(String token) {
+        String userPhotoPath = null;
+        if (firebaseUser.getPhotoUrl() != null) {
+            userPhotoPath = firebaseUser.getPhotoUrl().toString();
+        }
+        User user = new User(UUID.randomUUID().toString(), token, firebaseUser.getDisplayName(), userPhotoPath);
+        mUserDatabaseRef.child(firebaseUser.getUid()).setValue(user);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }
