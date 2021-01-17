@@ -18,7 +18,7 @@ import com.badlogic.gdx.math.Rectangle;
 import java.util.Arrays;
 import java.util.Random;
 
-public class Seafish extends ApplicationAdapter implements VideoEventListener {
+public class Seafish extends ApplicationAdapter implements VideoEventListener, FacebookAuth {
 
     //Mantém dados salvos
     private Preferences prefs;
@@ -194,8 +194,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         anzois = new Sprite[4];
         minhocasScore = new Sprite[10];
         minhocaBonus = new Sprite();
-        bolha = new Sprite(new Texture("imagens/bolha.png"));
-        bolhaInicio = new Texture("imagens/bolhainicio.png");
+        bolha = new Sprite(new Texture("imagens/elementos/bolha.png"));
+        bolhaInicio = new Texture("imagens/enfeites/bolhainicio.png");
 
         //Distancia da minhoca do obstáculo
         distanciaMinhoca = new int[4];
@@ -481,10 +481,10 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
                 if (musicSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
                     if (somFundo.isPlaying()) {
                         somFundo.pause();
-                        music = new Texture("imagens/musicoff.png");
+                        music = new Texture("imagens/botos/musicoff.png");
                     } else {
                         somFundo.play();
-                        music = new Texture("imagens/music.png");
+                        music = new Texture("imagens/botos/music.png");
                     }
                 }
             }
@@ -692,6 +692,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         //Se o botão iniciar jogo for clicado
         if (Gdx.input.justTouched()) {
             if (playSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
+                authentication.callRanking();
                 if (i == 0 || i == 1 || i == 2 || (i == 3 && record >= 2000) || (i == 4 && record >= 4000) || (i == 5 && record >= 6000) || (i == 6 && record >= 8000)) {
                     estado = 1;
                     gameOver = false;
@@ -707,7 +708,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
 
         batch.draw(telaInicial, 0, 0, largura, altura);
         batch.draw(startGame, (largura / 2) - (startGame.getWidth() * ajusteLargura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)), startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
-        batch.draw(loginFb, (largura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)), startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
+        batch.draw(loginFb, (largura / 2), (loginFb.getHeight() * ajusteAltura * 2), startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
         algas[variacaoAlga].draw(batch);
         algas[2].draw(batch);
         batch.draw(back, (largura / 2) - (back.getWidth() * ajusteLargura * 7), ALTURA_SELECT_PEIXE, 250 * ajusteLargura, 250 * ajusteLargura);
@@ -1251,130 +1252,130 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
     }
 
     private void setPeixes() {
-        peixes[0][0] = new Sprite(new Texture("imagens/peixe1.png"));
-        peixes[0][1] = new Sprite(new Texture("imagens/peixe12.png"));
-        peixes[0][2] = new Sprite(new Texture("imagens/peixe1red.png"));
-        peixes[0][3] = new Sprite(new Texture("imagens/tubarao1.png"));
-        peixes[0][4] = new Sprite(new Texture("imagens/tubarao12.png"));
-        peixes[1][0] = new Sprite(new Texture("imagens/peixe2.png"));
-        peixes[1][1] = new Sprite(new Texture("imagens/peixe22.png"));
-        peixes[1][2] = new Sprite(new Texture("imagens/peixe2red.png"));
-        peixes[1][3] = new Sprite(new Texture("imagens/tubarao2.png"));
-        peixes[1][4] = new Sprite(new Texture("imagens/tubarao22.png"));
-        peixes[2][0] = new Sprite(new Texture("imagens/peixe3.png"));
-        peixes[2][1] = new Sprite(new Texture("imagens/peixe32.png"));
-        peixes[2][2] = new Sprite(new Texture("imagens/peixe3red.png"));
-        peixes[2][3] = new Sprite(new Texture("imagens/tubarao3.png"));
-        peixes[2][4] = new Sprite(new Texture("imagens/tubarao32.png"));
+        peixes[0][0] = new Sprite(new Texture("imagens/personagens/peixe1.png"));
+        peixes[0][1] = new Sprite(new Texture("imagens/personagens/peixe12.png"));
+        peixes[0][2] = new Sprite(new Texture("imagens/personagens/peixe1red.png"));
+        peixes[0][3] = new Sprite(new Texture("imagens/personagens/tubarao1.png"));
+        peixes[0][4] = new Sprite(new Texture("imagens/personagens/tubarao12.png"));
+        peixes[1][0] = new Sprite(new Texture("imagens/personagens/peixe2.png"));
+        peixes[1][1] = new Sprite(new Texture("imagens/personagens/peixe22.png"));
+        peixes[1][2] = new Sprite(new Texture("imagens/personagens/peixe2red.png"));
+        peixes[1][3] = new Sprite(new Texture("imagens/personagens/tubarao2.png"));
+        peixes[1][4] = new Sprite(new Texture("imagens/personagens/tubarao22.png"));
+        peixes[2][0] = new Sprite(new Texture("imagens/personagens/peixe3.png"));
+        peixes[2][1] = new Sprite(new Texture("imagens/personagens/peixe32.png"));
+        peixes[2][2] = new Sprite(new Texture("imagens/personagens/peixe3red.png"));
+        peixes[2][3] = new Sprite(new Texture("imagens/personagens/tubarao3.png"));
+        peixes[2][4] = new Sprite(new Texture("imagens/personagens/tubarao32.png"));
 
         if (record < 2000) {
-            peixes[3][0] = new Sprite(new Texture("imagens/sombra1.png"));
-            peixes[3][1] = new Sprite(new Texture("imagens/sombra1.png"));
+            peixes[3][0] = new Sprite(new Texture("imagens/personagens/sombra1.png"));
+            peixes[3][1] = new Sprite(new Texture("imagens/personagens/sombra1.png"));
         } else {
-            peixes[3][0] = new Sprite(new Texture("imagens/peixe4.png"));
-            peixes[3][1] = new Sprite(new Texture("imagens/peixe42.png"));
-            peixes[3][2] = new Sprite(new Texture("imagens/peixe4red.png"));
-            peixes[3][3] = new Sprite(new Texture("imagens/tubarao4.png"));
-            peixes[3][4] = new Sprite(new Texture("imagens/tubarao42.png"));
+            peixes[3][0] = new Sprite(new Texture("imagens/personagens/peixe4.png"));
+            peixes[3][1] = new Sprite(new Texture("imagens/personagens/peixe42.png"));
+            peixes[3][2] = new Sprite(new Texture("imagens/personagens/peixe4red.png"));
+            peixes[3][3] = new Sprite(new Texture("imagens/personagens/tubarao4.png"));
+            peixes[3][4] = new Sprite(new Texture("imagens/personagens/tubarao42.png"));
         }
 
         if (record < 4000) {
-            peixes[4][0] = new Sprite(new Texture("imagens/sombra2.png"));
-            peixes[4][1] = new Sprite(new Texture("imagens/sombra2.png"));
+            peixes[4][0] = new Sprite(new Texture("imagens/personagens/sombra2.png"));
+            peixes[4][1] = new Sprite(new Texture("imagens/personagens/sombra2.png"));
         } else {
-            peixes[4][0] = new Sprite(new Texture("imagens/peixe5.png"));
-            peixes[4][1] = new Sprite(new Texture("imagens/peixe52.png"));
-            peixes[4][2] = new Sprite(new Texture("imagens/peixe5red.png"));
-            peixes[4][3] = new Sprite(new Texture("imagens/tubarao5.png"));
-            peixes[4][4] = new Sprite(new Texture("imagens/tubarao52.png"));
+            peixes[4][0] = new Sprite(new Texture("imagens/personagens/peixe5.png"));
+            peixes[4][1] = new Sprite(new Texture("imagens/personagens/peixe52.png"));
+            peixes[4][2] = new Sprite(new Texture("imagens/personagens/peixe5red.png"));
+            peixes[4][3] = new Sprite(new Texture("imagens/personagens/tubarao5.png"));
+            peixes[4][4] = new Sprite(new Texture("imagens/personagens/tubarao52.png"));
         }
 
         if (record < 6000) {
-            peixes[5][0] = new Sprite(new Texture("imagens/sombra3.png"));
-            peixes[5][1] = new Sprite(new Texture("imagens/sombra3.png"));
+            peixes[5][0] = new Sprite(new Texture("imagens/personagens/sombra3.png"));
+            peixes[5][1] = new Sprite(new Texture("imagens/personagens/sombra3.png"));
         } else {
-            peixes[5][0] = new Sprite(new Texture("imagens/peixe6.png"));
-            peixes[5][1] = new Sprite(new Texture("imagens/peixe62.png"));
-            peixes[5][2] = new Sprite(new Texture("imagens/peixe6red.png"));
-            peixes[5][3] = new Sprite(new Texture("imagens/tubarao6.png"));
-            peixes[5][4] = new Sprite(new Texture("imagens/tubarao62.png"));
+            peixes[5][0] = new Sprite(new Texture("imagens/personagens/peixe6.png"));
+            peixes[5][1] = new Sprite(new Texture("imagens/personagens/peixe62.png"));
+            peixes[5][2] = new Sprite(new Texture("imagens/personagens/peixe6red.png"));
+            peixes[5][3] = new Sprite(new Texture("imagens/personagens/tubarao6.png"));
+            peixes[5][4] = new Sprite(new Texture("imagens/personagens/tubarao62.png"));
         }
 
         if (record < 8000) {
-            peixes[6][0] = new Sprite(new Texture("imagens/sombra4.png"));
-            peixes[6][1] = new Sprite(new Texture("imagens/sombra4.png"));
+            peixes[6][0] = new Sprite(new Texture("imagens/personagens/sombra4.png"));
+            peixes[6][1] = new Sprite(new Texture("imagens/personagens/sombra4.png"));
         } else {
-            peixes[6][0] = new Sprite(new Texture("imagens/peixe7.png"));
-            peixes[6][1] = new Sprite(new Texture("imagens/peixe72.png"));
-            peixes[6][2] = new Sprite(new Texture("imagens/peixe7red.png"));
-            peixes[6][3] = new Sprite(new Texture("imagens/tubarao7.png"));
-            peixes[6][4] = new Sprite(new Texture("imagens/tubarao72.png"));
+            peixes[6][0] = new Sprite(new Texture("imagens/personagens/peixe7.png"));
+            peixes[6][1] = new Sprite(new Texture("imagens/personagens/peixe72.png"));
+            peixes[6][2] = new Sprite(new Texture("imagens/personagens/peixe7red.png"));
+            peixes[6][3] = new Sprite(new Texture("imagens/personagens/tubarao7.png"));
+            peixes[6][4] = new Sprite(new Texture("imagens/personagens/tubarao72.png"));
         }
     }
 
     private void setTextures() {
         //Texturas
-        peixe = new Sprite(new Texture("imagens/peixe1.png"));
-        fundo[0] = new Texture("imagens/fundo1.png");
-        fundo[1] = new Texture("imagens/fundo2.png");
-        fundo[2] = new Texture("imagens/fundo3.png");
-        fundo[3] = new Texture("imagens/fundo4.png");
-        fundo[4] = new Texture("imagens/fundo5.png");
-        fundo[5] = new Texture("imagens/fundo6.png");
-        fundo[6] = new Texture("imagens/fundo7.png");
-        telaInicial = new Texture("imagens/telainicio.png");
-        gameOverText = new Texture("imagens/gameover.png");
-        continueText = new Texture("imagens/continue.png");
-        reload = new Texture("imagens/refresh.png");
-        music = new Texture("imagens/music.png");
-        pause = new Texture("imagens/pause.png");
-        menuBotao = new Texture("imagens/menu.png");
-        simBotao = new Texture("imagens/yes.png");
-        videoIcon = new Texture("imagens/video.png");
-        naoBotao = new Texture("imagens/no.png");
-        startGame = new Texture("imagens/startgame.png");
-        loginFb = new Texture("imagens/loginFb.png");
-        next = new Texture("imagens/next.png");
-        back = new Texture("imagens/back.png");
+        peixe = new Sprite(new Texture("imagens/personagens/peixe1.png"));
+        fundo[0] = new Texture("imagens/cenarios/fundo1.png");
+        fundo[1] = new Texture("imagens/cenarios/fundo2.png");
+        fundo[2] = new Texture("imagens/cenarios/fundo3.png");
+        fundo[3] = new Texture("imagens/cenarios/fundo4.png");
+        fundo[4] = new Texture("imagens/cenarios/fundo5.png");
+        fundo[5] = new Texture("imagens/cenarios/fundo6.png");
+        fundo[6] = new Texture("imagens/cenarios/fundo7.png");
+        telaInicial = new Texture("imagens/cenarios/telainicio.png");
+        gameOverText = new Texture("imagens/textos/gameover.png");
+        continueText = new Texture("imagens/textos/continue.png");
+        reload = new Texture("imagens/botoes/refresh.png");
+        music = new Texture("imagens/botoes/music.png");
+        pause = new Texture("imagens/botoes/pause.png");
+        menuBotao = new Texture("imagens/botoes/menu.png");
+        simBotao = new Texture("imagens/botoes/yes.png");
+        videoIcon = new Texture("imagens/botoes/video.png");
+        naoBotao = new Texture("imagens/botoes/no.png");
+        startGame = new Texture("imagens/botoes/startgame.png");
+        loginFb = new Texture("imagens/botoes/loginFb.png");
+        next = new Texture("imagens/botoes/next.png");
+        back = new Texture("imagens/botoes/back.png");
         setPeixes();
-        cardumes[0] = new Sprite(new Texture("imagens/piranhas.png"));
-        cardumes[1] = new Sprite(new Texture("imagens/piranhas2.png"));
-        tubaroes[0] = new Sprite(new Texture("imagens/tubaraoinimigo2.png"));
-        tubaroes[1] = new Sprite(new Texture("imagens/tubaraoinimigo22.png"));
-        poluicoes[0] = new Sprite(new Texture("imagens/baiacu.png"));
-        poluicoes[1] = new Sprite(new Texture("imagens/canudo.png"));
-        poluicoes[2] = new Sprite(new Texture("imagens/garrafa.png"));
-        poluicoes[3] = new Sprite(new Texture("imagens/pneu.png"));
-        poluicoes[4] = new Sprite(new Texture("imagens/plastico.png"));
-        anzois[0] = new Sprite(new Texture("imagens/anzol1.png"));
-        anzois[1] = new Sprite(new Texture("imagens/anzol2.png"));
-        anzois[2] = new Sprite(new Texture("imagens/anzol3.png"));
-        anzois[3] = new Sprite(new Texture("imagens/anzol4.png"));
+        cardumes[0] = new Sprite(new Texture("imagens/obstaculos/piranhas.png"));
+        cardumes[1] = new Sprite(new Texture("imagens/obstaculos/piranhas2.png"));
+        tubaroes[0] = new Sprite(new Texture("imagens/obstaculos/tubaraoinimigo2.png"));
+        tubaroes[1] = new Sprite(new Texture("imagens/obstaculos/tubaraoinimigo22.png"));
+        poluicoes[0] = new Sprite(new Texture("imagens/obstaculos/baiacu.png"));
+        poluicoes[1] = new Sprite(new Texture("imagens/obstaculos/canudo.png"));
+        poluicoes[2] = new Sprite(new Texture("imagens/obstaculos/garrafa.png"));
+        poluicoes[3] = new Sprite(new Texture("imagens/obstaculos/pneu.png"));
+        poluicoes[4] = new Sprite(new Texture("imagens/obstaculos/plastico.png"));
+        anzois[0] = new Sprite(new Texture("imagens/obstaculos/anzol1.png"));
+        anzois[1] = new Sprite(new Texture("imagens/obstaculos/anzol2.png"));
+        anzois[2] = new Sprite(new Texture("imagens/obstaculos/anzol3.png"));
+        anzois[3] = new Sprite(new Texture("imagens/obstaculos/anzol4.png"));
         for (int i = 0; i < minhocasScore.length; i++) {
-            minhocasScore[i] = new Sprite(new Texture("imagens/minhoca.png"));
+            minhocasScore[i] = new Sprite(new Texture("imagens/elementos/minhoca.png"));
         }
-        minhocaBonus = new Sprite(new Texture("imagens/minhocabonus.png"));
-        enfeite[0] = new Texture("imagens/enfeite1.png");
-        enfeite[1] = new Texture("imagens/enfeite2.png");
-        enfeite[2] = new Texture("imagens/enfeite3.png");
-        enfeite[3] = new Texture("imagens/enfeite4.png");
-        enfeite[4] = new Texture("imagens/enfeite5.png");
-        enfeite[5] = new Texture("imagens/enfeite6.png");
-        enfeite[6] = new Texture("imagens/enfeite7.png");
+        minhocaBonus = new Sprite(new Texture("imagens/elementos/minhocabonus.png"));
+        enfeite[0] = new Texture("imagens/enfeites/enfeite1.png");
+        enfeite[1] = new Texture("imagens/enfeites/enfeite2.png");
+        enfeite[2] = new Texture("imagens/enfeites/enfeite3.png");
+        enfeite[3] = new Texture("imagens/enfeites/enfeite4.png");
+        enfeite[4] = new Texture("imagens/enfeites/enfeite5.png");
+        enfeite[5] = new Texture("imagens/enfeites/enfeite6.png");
+        enfeite[6] = new Texture("imagens/enfeites/enfeite7.png");
     }
 
     private void setAlgas() {
         //set Algas
         algas = new Sprite[3];
-        algas[0] = new Sprite(new Texture("imagens/alga1.png"));
+        algas[0] = new Sprite(new Texture("imagens/enfeites/alga1.png"));
         algas[0].setPosition(largura / 10, -algas[0].getHeight() * ajusteAltura / 5);
         algas[0].setSize(algas[0].getWidth() * ajusteLargura, algas[0].getHeight() * ajusteAltura);
 
-        algas[1] = new Sprite(new Texture("imagens/algaVaria.png"));
+        algas[1] = new Sprite(new Texture("imagens/enfeites/algaVaria.png"));
         algas[1].setPosition(largura / 10, -algas[1].getHeight() * ajusteAltura / 5);
         algas[1].setSize(algas[1].getWidth() * ajusteLargura, algas[1].getHeight() * ajusteAltura);
 
-        algas[2] = new Sprite(new Texture("imagens/alga2.png"));
+        algas[2] = new Sprite(new Texture("imagens/enfeites/alga2.png"));
         algas[2].setPosition(largura / 2, -algas[2].getHeight() * ajusteAltura / 5);
         algas[2].setSize(algas[2].getWidth() * ajusteLargura, algas[2].getHeight() * ajusteAltura);
     }
@@ -1455,5 +1456,20 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener {
         } else {
             gameOver();
         }
+    }
+
+    @Override
+    public void login() {
+
+    }
+
+    @Override
+    public void userLoggedIn() {
+        loginFb = new Texture("imagens/botoes/logoutFb.png");
+    }
+
+    @Override
+    public void userLoggedOut() {
+        loginFb = new Texture("imagens/botoes/loginFb.png");
     }
 }

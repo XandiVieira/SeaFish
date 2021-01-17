@@ -19,10 +19,8 @@ import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
-import com.facebook.FacebookSdk;
-import com.facebook.appevents.AppEventsLogger;
+import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
@@ -64,6 +62,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     private User user;
     private DatabaseReference mUserDatabaseRef;
     private FirebaseUser firebaseUser;
+    private FacebookAuth facebookAuth;
 
     @SuppressLint("HandlerLeak")
     protected Handler handler = new Handler() {
@@ -114,7 +113,8 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
         RelativeLayout layout = new RelativeLayout(this);
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-        View gameView = initializeForView(new Seafish(this, this, this, this), config);
+        facebookAuth = this;
+        View gameView = initializeForView(new Seafish(this, this, this, facebookAuth), config);
 
         layout.addView(gameView);
 
@@ -303,12 +303,9 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     public void login() {
         callbackManager = CallbackManager.Factory.create();
 
-        LoginButton loginButton = new LoginButton(getApplicationContext());
-        loginButton.performClick();
-        loginButton.setReadPermissions(Arrays.asList("email", "public_profile"));
+        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email", "public_profile"));
 
-        // Callback registration
-        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+        LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 handleFacebookAccessToken(loginResult.getAccessToken());
@@ -324,6 +321,16 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
             }
         });
+    }
+
+    @Override
+    public void userLoggedIn() {
+
+    }
+
+    @Override
+    public void userLoggedOut() {
+
     }
 
     private void handleFacebookAccessToken(AccessToken accessToken) {
@@ -343,6 +350,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
                 if (user == null || user.getUid() == null) {
                     createUser(token);
                 }
+                facebookAuth.userLoggedIn();
             }
 
             @Override

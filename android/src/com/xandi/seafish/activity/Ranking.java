@@ -2,7 +2,6 @@ package com.xandi.seafish.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
@@ -22,6 +21,7 @@ import com.xandi.seafish.model.User;
 import com.xandi.seafish.model.Util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Ranking extends Activity {
@@ -48,13 +48,14 @@ public class Ranking extends Activity {
 
         background.setOnClickListener(v -> finish());
 
-        mRankingDatabaseRef.addValueEventListener(new ValueEventListener() {
+        mRankingDatabaseRef.orderByChild("score").limitToLast(100).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Position> ranking = new ArrayList<>();
                 for (DataSnapshot snap : snapshot.getChildren()) {
                     ranking.add(snap.getValue(Position.class));
                 }
+                Collections.reverse(ranking);
                 recyclerViewPositionAdapter = new RecyclerViewPositionAdapter(ranking, getApplicationContext(), activity);
                 LinearLayoutManager layoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false);
                 rankingView.setLayoutManager(layoutManager);
