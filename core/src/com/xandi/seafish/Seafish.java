@@ -64,7 +64,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
     private Integer record;
     private BitmapFont recordLabel;
 
-    private BitmapFont tap;
+    private BitmapFont tap, userNamefont;
+    private String userName;
 
     //Metros enquanto tubarão
     private float contaMetrosTubarao;
@@ -188,7 +189,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
     @Override
     public void create() {
 
-        changeLoginButton();
+        changeLoginButton(null);
 
         System.gc();
         //Dimensões padrão
@@ -360,6 +361,9 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         recordLabel.setColor(Color.WHITE);
         recordLabel.getData().setScale(6 * ajusteLargura);
         tap = new BitmapFont();
+        userNamefont = new BitmapFont();
+        userNamefont.setColor(Color.WHITE);
+        userNamefont.getData().setScale(3 * ajusteLargura);
         tap.setColor(Color.WHITE);
         tap.getData().setScale(5 * ajusteLargura);
         metros.setColor(Color.WHITE);
@@ -738,6 +742,10 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         batch.draw(ranking, (ranking.getWidth() * ajusteLargura) / 10f, (altura / 2f) * ajusteAltura, (ranking.getWidth() / 2f) * ajusteLargura, ranking.getHeight() * ajusteAltura);
         batch.draw(loginFb, (loginFb.getWidth() * ajusteLargura) / 10f, (altura / 2f) - (loginFb.getHeight() * 1.5f) * ajusteAltura, (loginFb.getWidth() / 2f) * ajusteLargura, loginFb.getHeight() * ajusteAltura);
 
+        if (userName != null) {
+            userNamefont.draw(batch, userName, (loginFb.getWidth() * ajusteLargura) / 10f, (altura / 2f) - (loginFb.getHeight() * 1.5f) - (loginFb.getHeight() / 10) * ajusteAltura);
+        }
+
         algas[variacaoAlga].draw(batch);
         algas[2].draw(batch);
         batch.draw(back, (largura / 2) - (back.getWidth() * ajusteLargura * 7), ALTURA_SELECT_PEIXE, 250 * ajusteLargura, 250 * ajusteLargura);
@@ -783,7 +791,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         selecionaPeixe();
     }
 
-    private void changeLoginButton() {
+    private void changeLoginButton(String name) {
+        userName = name;
         if (facebookAuth.isLoggedIn()) {
             Gdx.app.postRunnable(new Runnable() {
                 @Override
@@ -1530,12 +1539,12 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
     }
 
     @Override
-    public void userLoggedIn() {
-        changeLoginButton();
+    public void userLoggedIn(String name) {
+        changeLoginButton(name);
     }
 
     @Override
     public void userLoggedOut() {
-        changeLoginButton();
+        changeLoginButton(null);
     }
 }

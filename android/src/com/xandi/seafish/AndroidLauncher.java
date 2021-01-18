@@ -141,7 +141,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
             }
             isLoggedIn = firebaseUser != null;
             if (isLoggedIn) {
-                loginCallback.userLoggedIn();
+                loginCallback.userLoggedIn(firebaseUser.getDisplayName());
             }
         };
 
@@ -417,7 +417,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
                 } else {
                     updateUser(user);
                 }
-                loginCallback.userLoggedIn();
+                loginCallback.userLoggedIn(user.getName());
             }
 
             @Override

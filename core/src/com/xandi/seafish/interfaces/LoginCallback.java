@@ -2,6 +2,6 @@ package com.xandi.seafish.interfaces;
 
 public interface LoginCallback {
 
-    void userLoggedIn();
+    void userLoggedIn(String userName);
     void userLoggedOut();
 }
