@@ -19,6 +19,7 @@ import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.google.android.gms.ads.AdListener;
@@ -40,14 +41,15 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.xandi.seafish.activity.Constants;
-import com.xandi.seafish.activity.Ranking;
+import com.xandi.seafish.model.Position;
 import com.xandi.seafish.model.User;
+import com.xandi.seafish.model.Util;
 
 import java.util.Arrays;
-import java.util.UUID;
 
-public class AndroidLauncher extends AndroidApplication implements AdService, GoogleServices, RewardedVideoAdListener, FirebaseAuthentication, FacebookAuth {
+public class AndroidLauncher extends AndroidApplication implements AdService, GoogleServices, RewardedVideoAdListener, RankingInterface, FacebookAuth {
 
     private static final String TAG = "AndroidLauncher";
     private final int SHOW_ADS = 1;
@@ -60,9 +62,11 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     private FirebaseAuth.AuthStateListener firebaseAuthListener;
     private boolean isLoggedIn = false;
     private User user;
+    private DatabaseReference mRankingDatabaseRef;
     private DatabaseReference mUserDatabaseRef;
     private FirebaseUser firebaseUser;
     private FacebookAuth facebookAuth;
+    private String firebaseInstanceId;
 
     @SuppressLint("HandlerLeak")
     protected Handler handler = new Handler() {
@@ -88,7 +92,8 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     private static final String REWARDED_VIDEO_AD_UNIT_ID = "ca-app-pub-1676578761693318/4622601407";
 
     private RewardedVideoAd adRewardedVideoView;
-    private VideoEventListener vel;
+    private VideoEventListener videoEventListener;
+    private LoginCallback loginCallback;
 
     public void callFullScreen() {
         View v = this.getWindow().getDecorView();
@@ -110,6 +115,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FacebookSdk.sdkInitialize(getApplicationContext());
 
         RelativeLayout layout = new RelativeLayout(this);
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
@@ -121,8 +127,13 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
         startFirebaseInstances();
         firebaseAuthListener = firebaseAuth -> {
             firebaseUser = firebaseAuth.getCurrentUser();
+            Util.setUserUid(firebaseUser.getUid());
             isLoggedIn = firebaseUser != null;
+            if (isLoggedIn) {
+                loginCallback.userLoggedIn();
+            }
         };
+
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseAuth.addAuthStateListener(firebaseAuthListener);
 
@@ -152,12 +163,6 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
         setupRewarded();
     }
 
-    private void startFirebaseInstances() {
-        FirebaseApp.initializeApp(this);
-        FirebaseDatabase mFirebaseDatabase = FirebaseDatabase.getInstance();
-        DatabaseReference mDatabaseRef = mFirebaseDatabase.getReference();
-        mUserDatabaseRef = mDatabaseRef.child(Constants.DATABASE_REF_USER);
-    }
 
     public void loadRewardedVideoAd() {
         AdRequest.Builder builder = new AdRequest.Builder();
@@ -199,7 +204,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
     @Override
     public void setVideoEventListener(VideoEventListener listener) {
-        this.vel = listener;
+        this.videoEventListener = listener;
     }
 
     public void setupInterstitialAds() {
@@ -242,8 +247,8 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
     @Override
     public void onRewardedVideoAdLoaded() {
-        if (vel != null) {
-            vel.onRewardedVideoAdLoadedEvent();
+        if (videoEventListener != null) {
+            videoEventListener.onRewardedVideoAdLoadedEvent();
         }
         is_video_ad_loaded = true;
     }
@@ -262,15 +267,15 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     public void onRewardedVideoAdClosed() {
         is_video_ad_loaded = false;
         loadRewardedVideoAd();
-        if (vel != null) {
-            vel.onRewardedVideoAdClosedEvent();
+        if (videoEventListener != null) {
+            videoEventListener.onRewardedVideoAdClosedEvent();
         }
     }
 
     @Override
     public void onRewarded(RewardItem rewardItem) {
-        if (vel != null) {
-            vel.onRewardedEvent();
+        if (videoEventListener != null) {
+            videoEventListener.onRewardedEvent();
         }
     }
 
@@ -291,12 +296,66 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
     @Override
     public void callRanking() {
-        startActivity(new Intent(getApplicationContext(), Ranking.class));
+        startActivity(new Intent(getApplicationContext(), com.xandi.seafish.activity.Ranking.class));
+    }
+
+    @Override
+    public void saveRecord(float score) {
+        if (firebaseUser != null) {
+            Util.mDatabaseUserRef.child(firebaseUser.getUid()).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    Util.mDatabaseUserRef.child(firebaseUser.getUid()).removeEventListener(this);
+                    User user = snapshot.getValue(User.class);
+                    if (user != null) {
+                        if (score > user.getPersonalRecord()) {
+                            mUserDatabaseRef.child(user.getUid()).child(Constants.DATABASE_REF_PERSONAL_SCORE).setValue(score);
+                            Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).limitToLast(Constants.RANKING_SIZE).addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).limitToLast(Constants.RANKING_SIZE).removeEventListener(this);
+                                    if (snapshot.getChildrenCount() >= Constants.RANKING_SIZE) {
+                                        for (DataSnapshot snap : snapshot.getChildren()) {
+                                            Position position = snap.getValue(Position.class);
+                                            if (position != null && score > position.getScore()) {
+                                                Util.mDatabaseRankingRef.push().setValue(new Position(user.getUid(), score));
+                                                break;
+                                            }
+                                        }
+                                    } else {
+                                        Util.mDatabaseRankingRef.push().setValue(new Position(user.getUid(), score));
+                                    }
+
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+
+                                }
+                            });
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+        }
     }
 
     @Override
     public boolean isLoggedIn() {
         return isLoggedIn;
+    }
+
+    @Override
+    public void logout() {
+        FirebaseAuth.getInstance().signOut();
+        LoginManager.getInstance().logOut();
+        loginCallback.userLoggedOut();
+        Util.setUserUid(null);
     }
 
     @Override
@@ -318,39 +377,34 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
             @Override
             public void onError(FacebookException exception) {
-
+                //Error
             }
         });
     }
 
     @Override
-    public void userLoggedIn() {
-
-    }
-
-    @Override
-    public void userLoggedOut() {
-
+    public void setLoginCallback(LoginCallback loginCallback) {
+        this.loginCallback = loginCallback;
     }
 
     private void handleFacebookAccessToken(AccessToken accessToken) {
         AuthCredential credential = FacebookAuthProvider.getCredential(accessToken.getToken());
         firebaseAuth.signInWithCredential(credential).addOnSuccessListener(authResult -> {
-            getUserDataFromFirebase(accessToken.getToken());
+            getUserDataFromFirebase(firebaseUser.getUid());
         });
     }
 
-    private void getUserDataFromFirebase(String token) {
-        mUserDatabaseRef.child(token).addValueEventListener(new ValueEventListener() {
+    private void getUserDataFromFirebase(String uid) {
+        mUserDatabaseRef.child(uid).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                mUserDatabaseRef.child(token).removeEventListener(this);
+                mUserDatabaseRef.child(uid).removeEventListener(this);
                 mUserDatabaseRef.removeEventListener(this);
                 user = dataSnapshot.getValue(User.class);
                 if (user == null || user.getUid() == null) {
-                    createUser(token);
+                    createUser(uid);
                 }
-                facebookAuth.userLoggedIn();
+                loginCallback.userLoggedIn();
             }
 
             @Override
@@ -360,13 +414,24 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
         });
     }
 
-    private void createUser(String token) {
+    private void createUser(String uid) {
         String userPhotoPath = null;
         if (firebaseUser.getPhotoUrl() != null) {
             userPhotoPath = firebaseUser.getPhotoUrl().toString();
         }
-        User user = new User(UUID.randomUUID().toString(), token, firebaseUser.getDisplayName(), userPhotoPath);
+        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(instanceIdResult -> firebaseInstanceId = instanceIdResult.getToken());
+        User user = new User(uid, firebaseUser.getDisplayName(), firebaseInstanceId, userPhotoPath);
         mUserDatabaseRef.child(firebaseUser.getUid()).setValue(user);
+    }
+
+    private void startFirebaseInstances() {
+        FirebaseApp.initializeApp(this);
+        FirebaseDatabase mFirebaseDatabase = FirebaseDatabase.getInstance();
+        DatabaseReference mDatabaseRef = mFirebaseDatabase.getReference();
+        mRankingDatabaseRef = mDatabaseRef.child(Constants.DATABASE_REF_RANKING);
+        mUserDatabaseRef = mDatabaseRef.child(Constants.DATABASE_REF_USER);
+        Util.setmDatabaseRankingRef(mRankingDatabaseRef);
+        Util.setmDatabaseUserRef(mUserDatabaseRef);
     }
 
     @Override

@@ -2,7 +2,8 @@ package com.xandi.seafish;
 
 public interface FacebookAuth {
 
+    boolean isLoggedIn();
     void login();
-    void userLoggedIn();
-    void userLoggedOut();
+    void logout();
+    void setLoginCallback(LoginCallback loginCallback);
 }

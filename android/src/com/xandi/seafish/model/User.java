@@ -7,7 +7,6 @@ public class User {
     private String token;
     private String photoPath;
     private Long personalRecord;
-    private Long lastScore;
 
     public User() {
     }
@@ -18,7 +17,6 @@ public class User {
         this.token = token;
         this.photoPath = photoPath;
         this.personalRecord = 0L;
-        this.lastScore = 0L;
     }
 
     public String getUid() {
@@ -59,13 +57,5 @@ public class User {
 
     public void setPersonalRecord(Long personalRecord) {
         this.personalRecord = personalRecord;
-    }
-
-    public Long getLastScore() {
-        return lastScore;
-    }
-
-    public void setLastScore(Long lastScore) {
-        this.lastScore = lastScore;
     }
 }

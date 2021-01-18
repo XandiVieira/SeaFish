@@ -18,7 +18,7 @@ import com.badlogic.gdx.math.Rectangle;
 import java.util.Arrays;
 import java.util.Random;
 
-public class Seafish extends ApplicationAdapter implements VideoEventListener, FacebookAuth {
+public class Seafish extends ApplicationAdapter implements VideoEventListener, LoginCallback {
 
     //Mantém dados salvos
     private Preferences prefs;
@@ -27,15 +27,16 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, F
     private AdService handler;
     private GoogleServices googleServices;
 
-    private FirebaseAuthentication authentication;
+    private RankingInterface rankingInterface;
     private FacebookAuth facebookAuth;
 
-    Seafish(AdService handler, GoogleServices googleServices, FirebaseAuthentication authentication, FacebookAuth facebookAuth) {
+    Seafish(AdService handler, GoogleServices googleServices, RankingInterface rankingInterface, FacebookAuth facebookAuth) {
         this.handler = handler;
         this.googleServices = googleServices;
         this.googleServices.setVideoEventListener(this);
-        this.authentication = authentication;
+        this.rankingInterface = rankingInterface;
         this.facebookAuth = facebookAuth;
+        this.facebookAuth.setLoginCallback(this);
     }
 
     //batch
@@ -60,11 +61,11 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, F
     private float contaMetrosTubarao;
 
     //Formas para sobrepor botoes
-    private Sprite peixe, menuSprite, playSprite, loginSprite, replaySprite, nextSprite, backSprite, simSprite, naoSprite, pauseSprite, musicSprite;
+    private Sprite peixe, menuSprite, playSprite, loginSprite, rankingSprite, replaySprite, nextSprite, backSprite, simSprite, naoSprite, pauseSprite, musicSprite;
     private Sprite[] algas;
 
     //imagens
-    private Texture telaInicial, gameOverText, reload, startGame, loginFb, next, back, menuBotao, simBotao, naoBotao, continueText, videoIcon, bolhaInicio, pause, music;
+    private Texture telaInicial, gameOverText, reload, startGame, loginFb, ranking, next, back, menuBotao, simBotao, naoBotao, continueText, videoIcon, bolhaInicio, pause, music;
     private Texture[] fundo, enfeite;
     private Sprite[][] peixes;
     private Sprite[] tubaroes;
@@ -177,6 +178,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, F
 
     @Override
     public void create() {
+
+        changeLoginButton();
 
         System.gc();
         //Dimensões padrão
@@ -481,10 +484,10 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, F
                 if (musicSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
                     if (somFundo.isPlaying()) {
                         somFundo.pause();
-                        music = new Texture("imagens/botos/musicoff.png");
+                        music = new Texture("imagens/botoes/musicoff.png");
                     } else {
                         somFundo.play();
-                        music = new Texture("imagens/botos/music.png");
+                        music = new Texture("imagens/botoes/music.png");
                     }
                 }
             }
@@ -648,6 +651,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, F
         //Botões game over
         if (Gdx.input.justTouched()) {
             if (gameOver) {
+                rankingInterface.saveRecord(metrosScore);
                 if (metrosScore > record) {
                     prefs.putInteger("score", (int) metrosScore);
                     prefs.flush();
@@ -692,7 +696,6 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, F
         //Se o botão iniciar jogo for clicado
         if (Gdx.input.justTouched()) {
             if (playSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
-                authentication.callRanking();
                 if (i == 0 || i == 1 || i == 2 || (i == 3 && record >= 2000) || (i == 4 && record >= 4000) || (i == 5 && record >= 6000) || (i == 6 && record >= 8000)) {
                     estado = 1;
                     gameOver = false;
@@ -700,7 +703,15 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, F
             }
 
             if (loginSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
-                facebookAuth.login();
+                if (facebookAuth.isLoggedIn()) {
+                    facebookAuth.logout();
+                } else {
+                    facebookAuth.login();
+                }
+            }
+
+            if (rankingSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
+                rankingInterface.callRanking();
             }
         }
 
@@ -708,7 +719,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, F
 
         batch.draw(telaInicial, 0, 0, largura, altura);
         batch.draw(startGame, (largura / 2) - (startGame.getWidth() * ajusteLargura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)), startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
-        batch.draw(loginFb, (largura / 2), (loginFb.getHeight() * ajusteAltura * 2), startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
+        batch.draw(ranking, ((largura - ((ranking.getWidth() / 1.7f) * ajusteLargura))), (ranking.getHeight() * 2f) * ajusteAltura, (ranking.getWidth() / 2f) * ajusteLargura, ranking.getHeight() * ajusteAltura);
+        batch.draw(loginFb, ((largura - ((loginFb.getWidth() / 1.7f) * ajusteLargura))), (loginFb.getHeight() / 2f) * ajusteAltura, (loginFb.getWidth() / 2f) * ajusteLargura, loginFb.getHeight() * ajusteAltura);
         algas[variacaoAlga].draw(batch);
         algas[2].draw(batch);
         batch.draw(back, (largura / 2) - (back.getWidth() * ajusteLargura * 7), ALTURA_SELECT_PEIXE, 250 * ajusteLargura, 250 * ajusteLargura);
@@ -752,6 +764,24 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, F
         variaAlga();
 
         selecionaPeixe();
+    }
+
+    private void changeLoginButton() {
+        if (facebookAuth.isLoggedIn()) {
+            Gdx.app.postRunnable(new Runnable() {
+                @Override
+                public void run() {
+                    loginFb = new Texture("imagens/botoes/logoutFb.png");
+                }
+            });
+        } else {
+            Gdx.app.postRunnable(new Runnable() {
+                @Override
+                public void run() {
+                    loginFb = new Texture("imagens/botoes/loginFb.png");
+                }
+            });
+        }
     }
 
     private void sobeDesceAnzol() {
@@ -1335,6 +1365,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, F
         naoBotao = new Texture("imagens/botoes/no.png");
         startGame = new Texture("imagens/botoes/startgame.png");
         loginFb = new Texture("imagens/botoes/loginFb.png");
+        ranking = new Texture("imagens/botoes/ranking.png");
         next = new Texture("imagens/botoes/next.png");
         back = new Texture("imagens/botoes/back.png");
         setPeixes();
@@ -1395,12 +1426,16 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, F
         naoSprite.setPosition(((largura / 2) + (naoBotao.getWidth() * ajusteLargura)), (float) ((altura / 3) - naoSprite.getHeight() * ajusteAltura * 1.5));
 
         playSprite = new Sprite(startGame);
-        playSprite.setSize(startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);   // set size
+        playSprite.setSize(startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
         playSprite.setPosition((largura / 2) - (startGame.getWidth() * ajusteLargura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)));
 
         loginSprite = new Sprite(loginFb);
-        loginSprite.setSize(startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);   // set size
-        loginSprite.setPosition((largura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)));
+        loginSprite.setSize(startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
+        loginSprite.setPosition(((largura - ((loginFb.getWidth() / 1.7f) * ajusteLargura))), (loginFb.getHeight() / 2f) * ajusteAltura);
+
+        rankingSprite = new Sprite(ranking);
+        rankingSprite.setSize(ranking.getWidth() * ajusteLargura, ranking.getHeight() * ajusteAltura);
+        rankingSprite.setPosition(((largura - ((ranking.getWidth() / 1.7f) * ajusteLargura))), (ranking.getHeight() * 2f) * ajusteAltura);
 
         replaySprite = new Sprite(reload);
         replaySprite.setSize(150 * ajusteLargura, 150 * ajusteAltura);
@@ -1459,17 +1494,12 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, F
     }
 
     @Override
-    public void login() {
-
-    }
-
-    @Override
     public void userLoggedIn() {
-        loginFb = new Texture("imagens/botoes/logoutFb.png");
+        changeLoginButton();
     }
 
     @Override
     public void userLoggedOut() {
-        loginFb = new Texture("imagens/botoes/loginFb.png");
+        changeLoginButton();
     }
 }

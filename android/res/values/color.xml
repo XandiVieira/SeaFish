@@ -5,4 +5,7 @@
     <color name="primary">#38B6FF</color>
     <color name="primary_dark">#4458BE</color>
     <color name="accent">#FFDE59</color>
+    <color name="blue">#33F4FF</color>
+    <color name="dark_blue">#2CABB2</color>
+    <color name="green">#41F671</color>
 </resources>

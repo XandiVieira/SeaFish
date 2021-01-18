@@ -1,8 +1,8 @@
 package com.xandi.seafish;
 
 public interface GoogleServices {
-    public boolean hasVideoLoaded();
-    public void loadRewardedVideoAd();
-    public void showRewardedVideoAd();
-    public void setVideoEventListener(VideoEventListener listener);
+    boolean hasVideoLoaded();
+    void loadRewardedVideoAd();
+    void showRewardedVideoAd();
+    void setVideoEventListener(VideoEventListener listener);
 }

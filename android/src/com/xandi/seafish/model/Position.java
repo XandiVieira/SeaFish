@@ -2,25 +2,30 @@ package com.xandi.seafish.model;
 
 public class Position {
 
-    private String name;
-    private Long score;
+    private String userUid;
+    private Float score;
 
     public Position() {
     }
 
-    public String getName() {
-        return name;
+    public Position(String userUid, Float score) {
+        this.userUid = userUid;
+        this.score = score;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getUserUid() {
+        return userUid;
     }
 
-    public Long getScore() {
+    public void setUserUid(String userUid) {
+        this.userUid = userUid;
+    }
+
+    public Float getScore() {
         return score;
     }
 
-    public void setScore(Long score) {
+    public void setScore(Float score) {
         this.score = score;
     }
 }

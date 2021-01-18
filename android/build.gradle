@@ -29,8 +29,8 @@ android {
         applicationId "com.xandi.seafish"
         minSdkVersion 16
         targetSdkVersion 30
-        versionCode 16
-        versionName "1.7.1"
+        versionCode 17
+        versionName "1.7.2"
         multiDexEnabled true
     }
     buildTypes {
