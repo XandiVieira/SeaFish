@@ -1,4 +1,4 @@
-package com.xandi.seafish;
+package com.xandi.seafish.interfaces;
 
 public interface VideoEventListener {
     void onRewardedEvent();

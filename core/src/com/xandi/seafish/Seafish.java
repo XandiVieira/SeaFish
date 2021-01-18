@@ -14,6 +14,13 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
+import com.xandi.seafish.interfaces.AdService;
+import com.xandi.seafish.interfaces.FacebookAuth;
+import com.xandi.seafish.interfaces.GoogleServices;
+import com.xandi.seafish.interfaces.LoginCallback;
+import com.xandi.seafish.interfaces.PrivacyPolicyAndTerms;
+import com.xandi.seafish.interfaces.RankingInterface;
+import com.xandi.seafish.interfaces.VideoEventListener;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -29,14 +36,16 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
 
     private RankingInterface rankingInterface;
     private FacebookAuth facebookAuth;
+    private PrivacyPolicyAndTerms privacyPolicyAndTerms;
 
-    Seafish(AdService handler, GoogleServices googleServices, RankingInterface rankingInterface, FacebookAuth facebookAuth) {
+    Seafish(AdService handler, GoogleServices googleServices, RankingInterface rankingInterface, FacebookAuth facebookAuth, PrivacyPolicyAndTerms privacyPolicyAndTerms) {
         this.handler = handler;
         this.googleServices = googleServices;
         this.googleServices.setVideoEventListener(this);
         this.rankingInterface = rankingInterface;
         this.facebookAuth = facebookAuth;
         this.facebookAuth.setLoginCallback(this);
+        this.privacyPolicyAndTerms = privacyPolicyAndTerms;
     }
 
     //batch
@@ -61,11 +70,11 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
     private float contaMetrosTubarao;
 
     //Formas para sobrepor botoes
-    private Sprite peixe, menuSprite, playSprite, loginSprite, rankingSprite, replaySprite, nextSprite, backSprite, simSprite, naoSprite, pauseSprite, musicSprite;
+    private Sprite peixe, menuSprite, playSprite, loginSprite, rankingSprite, termsSprite, privacyPolicySprite, replaySprite, nextSprite, backSprite, simSprite, naoSprite, pauseSprite, musicSprite;
     private Sprite[] algas;
 
     //imagens
-    private Texture telaInicial, gameOverText, reload, startGame, loginFb, ranking, next, back, menuBotao, simBotao, naoBotao, continueText, videoIcon, bolhaInicio, pause, music;
+    private Texture telaInicial, gameOverText, reload, startGame, loginFb, ranking, terms, privacyPolicy, next, back, menuBotao, simBotao, naoBotao, continueText, videoIcon, bolhaInicio, pause, music;
     private Texture[] fundo, enfeite;
     private Sprite[][] peixes;
     private Sprite[] tubaroes;
@@ -651,11 +660,6 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         //Botões game over
         if (Gdx.input.justTouched()) {
             if (gameOver) {
-                rankingInterface.saveRecord(metrosScore);
-                if (metrosScore > record) {
-                    prefs.putInteger("score", (int) metrosScore);
-                    prefs.flush();
-                }
                 if (replaySprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
                     gameOver = false;
                     int peixe = i;
@@ -713,14 +717,27 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
             if (rankingSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
                 rankingInterface.callRanking();
             }
+
+            if (termsSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
+                privacyPolicyAndTerms.callTerms();
+            }
+
+            if (privacyPolicySprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
+                privacyPolicyAndTerms.callPrivacyPolicy();
+            }
         }
 
         batch.begin();
 
         batch.draw(telaInicial, 0, 0, largura, altura);
         batch.draw(startGame, (largura / 2) - (startGame.getWidth() * ajusteLargura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)), startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
-        batch.draw(ranking, ((largura - ((ranking.getWidth() / 1.7f) * ajusteLargura))), (ranking.getHeight() * 2f) * ajusteAltura, (ranking.getWidth() / 2f) * ajusteLargura, ranking.getHeight() * ajusteAltura);
-        batch.draw(loginFb, ((largura - ((loginFb.getWidth() / 1.7f) * ajusteLargura))), (loginFb.getHeight() / 2f) * ajusteAltura, (loginFb.getWidth() / 2f) * ajusteLargura, loginFb.getHeight() * ajusteAltura);
+
+        batch.draw(terms, largura - ((privacyPolicy.getWidth() / 2f) * ajusteLargura), ((privacyPolicy.getHeight() / 1.5f) * ajusteAltura) + (privacyPolicy.getHeight() * ajusteAltura * 1.2f), (terms.getWidth() / 2f) * ajusteLargura, terms.getHeight() * ajusteAltura);
+        batch.draw(privacyPolicy, largura - ((privacyPolicy.getWidth() / 2f) * ajusteLargura), ((privacyPolicy.getHeight() / 1.5f) * ajusteAltura), (privacyPolicy.getWidth() / 2f) * ajusteLargura, privacyPolicy.getHeight() * ajusteAltura);
+
+        batch.draw(ranking, (ranking.getWidth() * ajusteLargura) / 10f, (altura / 2f) * ajusteAltura, (ranking.getWidth() / 2f) * ajusteLargura, ranking.getHeight() * ajusteAltura);
+        batch.draw(loginFb, (loginFb.getWidth() * ajusteLargura) / 10f, (altura / 2f) - (loginFb.getHeight() * 1.5f) * ajusteAltura, (loginFb.getWidth() / 2f) * ajusteLargura, loginFb.getHeight() * ajusteAltura);
+
         algas[variacaoAlga].draw(batch);
         algas[2].draw(batch);
         batch.draw(back, (largura / 2) - (back.getWidth() * ajusteLargura * 7), ALTURA_SELECT_PEIXE, 250 * ajusteLargura, 250 * ajusteLargura);
@@ -1136,7 +1153,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
                     } else {
                         gameOver();
                         if (contaPartidas == 2 || metrosScore >= 300) {
-                            handler.showinterstitialAd(new Runnable() {
+                            handler.showInterstitialAd(new Runnable() {
                                 @Override
                                 public void run() {
                                     contaPartidas = 0;
@@ -1153,6 +1170,15 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         somFundo.dispose();
         gameOver = true;
         gameOverSound.play();
+        saveScores();
+    }
+
+    private void saveScores() {
+        rankingInterface.saveRecord((int) metrosScore);
+        if (metrosScore > record) {
+            prefs.putInteger("score", (int) metrosScore);
+            prefs.flush();
+        }
     }
 
     private boolean mostraVideoPremiado() {
@@ -1366,6 +1392,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         startGame = new Texture("imagens/botoes/startgame.png");
         loginFb = new Texture("imagens/botoes/loginFb.png");
         ranking = new Texture("imagens/botoes/ranking.png");
+        terms = new Texture("imagens/botoes/terms.png");
+        privacyPolicy = new Texture("imagens/botoes/privacypolicy.png");
         next = new Texture("imagens/botoes/next.png");
         back = new Texture("imagens/botoes/back.png");
         setPeixes();
@@ -1430,12 +1458,20 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         playSprite.setPosition((largura / 2) - (startGame.getWidth() * ajusteLargura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)));
 
         loginSprite = new Sprite(loginFb);
-        loginSprite.setSize(startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
-        loginSprite.setPosition(((largura - ((loginFb.getWidth() / 1.7f) * ajusteLargura))), (loginFb.getHeight() / 2f) * ajusteAltura);
+        loginSprite.setSize((loginFb.getWidth() / 2f) * ajusteLargura, loginFb.getHeight() * ajusteAltura);
+        loginSprite.setPosition((loginFb.getWidth() * ajusteLargura) / 10f, (altura / 2f) - (loginFb.getHeight() * 1.5f) * ajusteAltura);
 
         rankingSprite = new Sprite(ranking);
-        rankingSprite.setSize(ranking.getWidth() * ajusteLargura, ranking.getHeight() * ajusteAltura);
-        rankingSprite.setPosition(((largura - ((ranking.getWidth() / 1.7f) * ajusteLargura))), (ranking.getHeight() * 2f) * ajusteAltura);
+        rankingSprite.setSize((ranking.getWidth() / 2f) * ajusteLargura, ranking.getHeight() * ajusteAltura);
+        rankingSprite.setPosition((ranking.getWidth() * ajusteLargura) / 10f, (altura / 2f) * ajusteAltura);
+
+        termsSprite = new Sprite(terms);
+        termsSprite.setSize((terms.getWidth() / 2f) * ajusteLargura, terms.getHeight() * ajusteAltura);
+        termsSprite.setPosition(largura - ((privacyPolicy.getWidth() / 2f) * ajusteLargura), ((privacyPolicy.getHeight() / 1.5f) * ajusteAltura) + (privacyPolicy.getHeight() * ajusteAltura * 1.2f));
+
+        privacyPolicySprite = new Sprite(privacyPolicy);
+        privacyPolicySprite.setSize((privacyPolicy.getWidth() / 2f) * ajusteLargura, privacyPolicy.getHeight() * ajusteAltura);
+        privacyPolicySprite.setPosition(largura - ((privacyPolicy.getWidth() / 2f) * ajusteLargura), ((privacyPolicy.getHeight() / 1.5f) * ajusteAltura));
 
         replaySprite = new Sprite(reload);
         replaySprite.setSize(150 * ajusteLargura, 150 * ajusteAltura);

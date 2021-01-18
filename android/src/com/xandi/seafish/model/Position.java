@@ -3,12 +3,12 @@ package com.xandi.seafish.model;
 public class Position {
 
     private String userUid;
-    private Float score;
+    private int score;
 
     public Position() {
     }
 
-    public Position(String userUid, Float score) {
+    public Position(String userUid, int score) {
         this.userUid = userUid;
         this.score = score;
     }
@@ -21,11 +21,11 @@ public class Position {
         this.userUid = userUid;
     }
 
-    public Float getScore() {
+    public int getScore() {
         return score;
     }
 
-    public void setScore(Float score) {
+    public void setScore(int score) {
         this.score = score;
     }
 }

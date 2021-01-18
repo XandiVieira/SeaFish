@@ -14,7 +14,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.xandi.seafish.R;
 import com.xandi.seafish.adapter.RecyclerViewPositionAdapter;
 import com.xandi.seafish.model.Position;
-import com.xandi.seafish.model.Util;
+import com.xandi.seafish.util.Constants;
+import com.xandi.seafish.util.Util;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +42,10 @@ public class Ranking extends Activity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Position> ranking = new ArrayList<>();
                 for (DataSnapshot snap : snapshot.getChildren()) {
-                    ranking.add(snap.getValue(Position.class));
+                    Position position = snap.getValue(Position.class);
+                    if (position != null && position.getScore() > 0) {
+                        ranking.add(position);
+                    }
                 }
                 Collections.reverse(ranking);
                 recyclerViewPositionAdapter = new RecyclerViewPositionAdapter(ranking, getApplicationContext(), Util.getUserUid());

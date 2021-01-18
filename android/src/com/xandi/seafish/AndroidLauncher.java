@@ -36,20 +36,30 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserInfo;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
-import com.xandi.seafish.activity.Constants;
+import com.xandi.seafish.activity.PrivacyPolicyActivity;
+import com.xandi.seafish.activity.TermsActivity;
+import com.xandi.seafish.interfaces.AdService;
+import com.xandi.seafish.interfaces.FacebookAuth;
+import com.xandi.seafish.interfaces.GoogleServices;
+import com.xandi.seafish.interfaces.LoginCallback;
+import com.xandi.seafish.interfaces.PrivacyPolicyAndTerms;
+import com.xandi.seafish.interfaces.RankingInterface;
+import com.xandi.seafish.interfaces.VideoEventListener;
 import com.xandi.seafish.model.Position;
 import com.xandi.seafish.model.User;
-import com.xandi.seafish.model.Util;
+import com.xandi.seafish.util.Constants;
+import com.xandi.seafish.util.Util;
 
 import java.util.Arrays;
 
-public class AndroidLauncher extends AndroidApplication implements AdService, GoogleServices, RewardedVideoAdListener, RankingInterface, FacebookAuth {
+public class AndroidLauncher extends AndroidApplication implements AdService, GoogleServices, RewardedVideoAdListener, RankingInterface, FacebookAuth, PrivacyPolicyAndTerms {
 
     private static final String TAG = "AndroidLauncher";
     private final int SHOW_ADS = 1;
@@ -65,7 +75,6 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     private DatabaseReference mRankingDatabaseRef;
     private DatabaseReference mUserDatabaseRef;
     private FirebaseUser firebaseUser;
-    private FacebookAuth facebookAuth;
     private String firebaseInstanceId;
 
     @SuppressLint("HandlerLeak")
@@ -119,15 +128,17 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
         RelativeLayout layout = new RelativeLayout(this);
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-        facebookAuth = this;
-        View gameView = initializeForView(new Seafish(this, this, this, facebookAuth), config);
+        View gameView = initializeForView(new Seafish(this, this, this, this, this), config);
 
         layout.addView(gameView);
 
         startFirebaseInstances();
         firebaseAuthListener = firebaseAuth -> {
             firebaseUser = firebaseAuth.getCurrentUser();
-            Util.setUserUid(firebaseUser.getUid());
+            if (firebaseUser != null) {
+                Util.setUserUid(firebaseUser.getUid());
+                getUserDataFromFirebase(firebaseUser.getUid());
+            }
             isLoggedIn = firebaseUser != null;
             if (isLoggedIn) {
                 loginCallback.userLoggedIn();
@@ -224,7 +235,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     }
 
     @Override
-    public void showinterstitialAd(final Runnable then) {
+    public void showInterstitialAd(final Runnable then) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -300,7 +311,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     }
 
     @Override
-    public void saveRecord(float score) {
+    public void saveRecord(int score) {
         if (firebaseUser != null) {
             Util.mDatabaseUserRef.child(firebaseUser.getUid()).addValueEventListener(new ValueEventListener() {
                 @Override
@@ -403,6 +414,8 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
                 user = dataSnapshot.getValue(User.class);
                 if (user == null || user.getUid() == null) {
                     createUser(uid);
+                } else {
+                    updateUser(user);
                 }
                 loginCallback.userLoggedIn();
             }
@@ -414,10 +427,25 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
         });
     }
 
+    private void updateUser(User user) {
+        if (!user.getName().equals(firebaseUser.getDisplayName())) {
+            user.setName(firebaseUser.getDisplayName());
+        }
+        UserInfo userInfo = firebaseUser.getProviderData().get(0);
+        String currentPhotoUrl = null;
+        if (userInfo != null && userInfo.getPhotoUrl() != null) {
+            currentPhotoUrl = userInfo.getPhotoUrl().toString().concat("?type=large");
+        }
+        if (currentPhotoUrl != null && !user.getPhotoPath().equals(currentPhotoUrl)) {
+            user.setPhotoPath(currentPhotoUrl);
+            mUserDatabaseRef.child(firebaseUser.getUid()).setValue(user);
+        }
+    }
+
     private void createUser(String uid) {
         String userPhotoPath = null;
         if (firebaseUser.getPhotoUrl() != null) {
-            userPhotoPath = firebaseUser.getPhotoUrl().toString();
+            userPhotoPath = firebaseUser.getPhotoUrl().toString().concat("?type=large");
         }
         FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(instanceIdResult -> firebaseInstanceId = instanceIdResult.getToken());
         User user = new User(uid, firebaseUser.getDisplayName(), firebaseInstanceId, userPhotoPath);
@@ -438,5 +466,15 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void callPrivacyPolicy() {
+        startActivity(new Intent(getApplicationContext(), PrivacyPolicyActivity.class));
+    }
+
+    @Override
+    public void callTerms() {
+        startActivity(new Intent(getApplicationContext(), TermsActivity.class));
     }
 }

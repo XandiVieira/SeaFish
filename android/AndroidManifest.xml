@@ -56,7 +56,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity android:name=".activity.Ranking" />
+        <activity android:name=".activity.TermsActivity" />
+        <activity android:name=".activity.PrivacyPolicyActivity" />
 
         <meta-data
             android:name="com.google.android.gms.version"

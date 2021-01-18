@@ -1,4 +1,4 @@
-package com.xandi.seafish.model;
+package com.xandi.seafish.util;
 
 import com.google.firebase.database.DatabaseReference;
 
