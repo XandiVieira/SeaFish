@@ -47,20 +47,25 @@ public class RecyclerViewPositionAdapter extends RecyclerView.Adapter<RecyclerVi
         Position position = elements.get(pos);
 
         if (position.getUserUid().equals(userUid)) {
-            holder.background.setBackgroundColor(context.getResources().getColor(R.color.green));
+            //holder.background.setBackground(context.getResources().getDrawable(R.drawable.my_position_shape));
+            holder.name.setTextColor(context.getResources().getColor(R.color.accent));
         }
 
         int textSize = 30;
 
-        if (pos == 0) {
-            holder.position.setTextSize(textSize);
-            holder.name.setTextSize(textSize);
-            holder.score.setTextSize(textSize);
-        } else if (pos > 0 && pos < 10) {
-            textSize = textSize - (pos * 2);
-            holder.position.setTextSize(textSize);
-            holder.name.setTextSize(textSize);
-            holder.score.setTextSize(textSize);
+        if (pos > 0 && pos < 10) {
+            textSize = textSize - pos;
+        } else if (pos >= 10) {
+            textSize = 20;
+        }
+
+        holder.position.setTextSize(textSize);
+        holder.name.setTextSize(textSize);
+        holder.score.setTextSize(textSize);
+
+        if (pos <= 2) {
+            holder.score.setTextColor(context.getResources().getColor(R.color.accent));
+            holder.position.setTextColor(context.getResources().getColor(R.color.accent));
         }
 
         Util.mDatabaseUserRef.child(position.getUserUid()).addValueEventListener(new ValueEventListener() {
@@ -85,6 +90,11 @@ public class RecyclerViewPositionAdapter extends RecyclerView.Adapter<RecyclerVi
     @Override
     public int getItemCount() {
         return elements.size();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return position;
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
