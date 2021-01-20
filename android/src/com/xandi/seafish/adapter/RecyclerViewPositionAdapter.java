@@ -65,7 +65,6 @@ public class RecyclerViewPositionAdapter extends RecyclerView.Adapter<RecyclerVi
 
         if (pos <= 2) {
             holder.score.setTextColor(context.getResources().getColor(R.color.accent));
-            holder.position.setTextColor(context.getResources().getColor(R.color.accent));
         }
 
         Util.mDatabaseUserRef.child(position.getUserUid()).addValueEventListener(new ValueEventListener() {
