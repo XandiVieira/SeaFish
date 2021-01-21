@@ -55,11 +55,12 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
 
     //Score
     private int metragem, velocidadeMetros;
-    private BitmapFont metros;
+    private BitmapFont metrosLabel;
+    private static GlyphLayout metrosLayout;
     private float metrosScore;
     private Integer record;
     private BitmapFont recordLabel;
-    private static GlyphLayout glyphLayout;
+    private static GlyphLayout recordLayout;
 
     private BitmapFont tap, userNamefont;
     private String userName;
@@ -202,14 +203,16 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         altura = Gdx.graphics.getHeight();
         ajusteAltura = (float) (altura / alturaPadrao);
         ajusteLargura = (float) (largura / larguraPadrao);
-        originalWidth = largura;
+        if (originalWidth == 0) {
+            originalWidth = largura;
+        }
 
         if (viewport == null) {
             OrthographicCamera camera = new OrthographicCamera();
             viewport = new StretchViewport(largura, altura, camera);
         }
 
-        changeLoginButton(null);
+        changeLoginButton(userName);
 
         System.gc();
         //Dimensões padrão
@@ -362,20 +365,26 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
             }
         }
 
-        metros = new BitmapFont();
+        metrosLabel = new BitmapFont();
+        metrosLabel.setColor(Color.YELLOW);
+        metrosLabel.getData().setScale(6 * ajusteLargura);
+        metrosLayout = new GlyphLayout();
+        metrosLayout.setText(metrosLabel, (int) metrosScore + "m");
+
         recordLabel = new BitmapFont();
         recordLabel.setColor(Color.YELLOW);
         recordLabel.getData().setScale(6 * ajusteLargura);
-        glyphLayout = new GlyphLayout();
-        glyphLayout.setText(recordLabel, "Record: " + record + "m");
+        if (recordLayout == null) {
+            recordLayout = new GlyphLayout();
+            recordLayout.setText(recordLabel, "Record: " + record + "m");
+        }
+
         tap = new BitmapFont();
         userNamefont = new BitmapFont();
         userNamefont.setColor(Color.YELLOW);
         userNamefont.getData().setScale(3 * ajusteLargura);
         tap.setColor(Color.YELLOW);
         tap.getData().setScale(5 * ajusteLargura);
-        metros.setColor(Color.YELLOW);
-        metros.getData().setScale(6 * ajusteLargura);
         metrosScore = 0;
         velocidadeMetros = 100;
 
@@ -644,14 +653,14 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
 
         for (int i = 1; i <= numMinhocas; i++) {
-            batch.draw(minhocasScore[i - 1], (float) ((largura - differenceBetweenWidth) - (minhocasScore[i - 1].getWidth() * ajusteLargura * i * 1.5)), (altura - glyphLayout.height - (minhocasScore[i - 1].getHeight() * ajusteAltura * 1.5f)), minhocasScore[i - 1].getWidth() * ajusteLargura, minhocasScore[i - 1].getHeight() * ajusteAltura);
+            batch.draw(minhocasScore[i - 1], (float) ((largura - differenceBetweenWidth) - (minhocasScore[i - 1].getWidth() * ajusteLargura * i * 1.5)), (altura - recordLayout.height - (minhocasScore[i - 1].getHeight() * ajusteAltura * 1.5f)), minhocasScore[i - 1].getWidth() * ajusteLargura, minhocasScore[i - 1].getHeight() * ajusteAltura);
         }
         if (vidaExtra) {
             batch.draw(bolha, (float) ((largura - differenceBetweenWidth) - (minhocaBonus.getWidth() * ajusteLargura * (numMinhocas + 2) * 1.5)), (float) (altura - minhocaBonus.getHeight() * ajusteAltura * 1.3), bolha.getTexture().getWidth() * ajusteLargura, bolha.getTexture().getHeight() * ajusteAltura);
         }
 
-        metros.draw(batch, (int) metrosScore + "m", (largura - differenceBetweenWidth) / 2 - (metros.getXHeight() / 2), altura - (altura / 10));
-        recordLabel.draw(batch, glyphLayout, (largura - differenceBetweenWidth - (glyphLayout.width) - 15), altura - 15);
+        metrosLabel.draw(batch, (int) metrosScore + "m", (largura - differenceBetweenWidth) / 2 - (metrosLayout.width / 2), altura - (altura / 10));
+        recordLabel.draw(batch, recordLayout, (largura - differenceBetweenWidth - (recordLayout.width) - 15), altura - 15);
         if (gameOver) {
             batch.draw(gameOverText, ((largura - differenceBetweenWidth) / 2) - (gameOverText.getWidth() * ajusteLargura / 2), (float) (altura - (gameOverText.getHeight() * ajusteAltura * 2.5)), gameOverText.getWidth() * ajusteLargura, gameOverText.getHeight() * ajusteAltura);
             batch.draw(reload, ((largura - differenceBetweenWidth) / 2) - (reload.getWidth() * ajusteLargura), altura / 2, 150 * ajusteLargura, 150 * ajusteAltura);
@@ -747,7 +756,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
 
         batch.begin();
 
-        batch.draw(telaInicial, 0, 0, (largura - differenceBetweenWidth), altura);
+        batch.draw(telaInicial, 0, 0, largura, altura);
         batch.draw(startGame, ((largura - differenceBetweenWidth) / 2) - (startGame.getWidth() * ajusteLargura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)), startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
 
         batch.draw(terms, (largura - differenceBetweenWidth) - ((privacyPolicy.getWidth() / 2f) * ajusteLargura), ((privacyPolicy.getHeight() / 1.5f) * ajusteAltura) + (privacyPolicy.getHeight() * ajusteAltura * 1.2f), (terms.getWidth() / 2f) * ajusteLargura, terms.getHeight() * ajusteAltura);
@@ -1510,7 +1519,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
 
         nextSprite = new Sprite(next);
         nextSprite.setSize(next.getWidth() * ajusteLargura, next.getHeight() * ajusteAltura);
-        nextSprite.setPosition(((largura - differenceBetweenWidth) / 2) + (next.getWidth() * ajusteLargura * 2), ALTURA_SELECT_PEIXE + (next.getHeight() * ajusteAltura));
+        nextSprite.setPosition(((largura - differenceBetweenWidth) / 2) + (next.getWidth() * ajusteLargura * 1.5f), ALTURA_SELECT_PEIXE + (next.getHeight() * ajusteAltura));
 
         backSprite = new Sprite(back);
         backSprite.setSize(back.getWidth() * ajusteLargura, back.getHeight() * ajusteAltura);
