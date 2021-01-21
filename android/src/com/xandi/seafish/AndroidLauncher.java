@@ -106,10 +106,9 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
     public void callFullScreen() {
         View v = this.getWindow().getDecorView();
-        if (Build.VERSION.SDK_INT < 19) { // lower api
+        if (Build.VERSION.SDK_INT < 19) {
             v.setSystemUiVisibility(View.GONE);
         } else {
-            //for new api versions.
             int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
             v.setSystemUiVisibility(uiOptions);
         }
@@ -336,7 +335,6 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
                                     } else {
                                         Util.mDatabaseRankingRef.push().setValue(new Position(user.getUid(), score));
                                     }
-
                                 }
 
                                 @Override

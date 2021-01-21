@@ -7,13 +7,17 @@ import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.xandi.seafish.interfaces.AdService;
 import com.xandi.seafish.interfaces.FacebookAuth;
 import com.xandi.seafish.interfaces.GoogleServices;
@@ -37,25 +41,17 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
     private RankingInterface rankingInterface;
     private FacebookAuth facebookAuth;
     private PrivacyPolicyAndTerms privacyPolicyAndTerms;
-
-    Seafish(AdService handler, GoogleServices googleServices, RankingInterface rankingInterface, FacebookAuth facebookAuth, PrivacyPolicyAndTerms privacyPolicyAndTerms) {
-        this.handler = handler;
-        this.googleServices = googleServices;
-        this.googleServices.setVideoEventListener(this);
-        this.rankingInterface = rankingInterface;
-        this.facebookAuth = facebookAuth;
-        this.facebookAuth.setLoginCallback(this);
-        this.privacyPolicyAndTerms = privacyPolicyAndTerms;
-    }
-
     //batch
     private SpriteBatch batch;
 
-    //Dimensões
-    private float ajusteAltura;
-    private float ajusteLargura;
+    private float originalWidth;
+    private float differenceBetweenWidth;
     private float largura;
     private float altura;
+    private float ajusteAltura;
+    private float ajusteLargura;
+    private double alturaPadrao = 1080;
+    private double larguraPadrao = 1920;
 
     //Score
     private int metragem, velocidadeMetros;
@@ -63,6 +59,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
     private float metrosScore;
     private Integer record;
     private BitmapFont recordLabel;
+    private static GlyphLayout glyphLayout;
 
     private BitmapFont tap, userNamefont;
     private String userName;
@@ -186,15 +183,36 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
     private int TOQUES_ANZOL4;
     private float ALTURA_SELECT_PEIXE;
 
+    private Viewport viewport;
+
+    Seafish(AdService handler, GoogleServices googleServices, RankingInterface rankingInterface, FacebookAuth facebookAuth, PrivacyPolicyAndTerms privacyPolicyAndTerms) {
+        this.handler = handler;
+        this.googleServices = googleServices;
+        this.googleServices.setVideoEventListener(this);
+        this.rankingInterface = rankingInterface;
+        this.facebookAuth = facebookAuth;
+        this.facebookAuth.setLoginCallback(this);
+        this.privacyPolicyAndTerms = privacyPolicyAndTerms;
+    }
+
     @Override
     public void create() {
+
+        largura = Gdx.graphics.getWidth();
+        altura = Gdx.graphics.getHeight();
+        ajusteAltura = (float) (altura / alturaPadrao);
+        ajusteLargura = (float) (largura / larguraPadrao);
+        originalWidth = largura;
+
+        if (viewport == null) {
+            OrthographicCamera camera = new OrthographicCamera();
+            viewport = new StretchViewport(largura, altura, camera);
+        }
 
         changeLoginButton(null);
 
         System.gc();
         //Dimensões padrão
-        double alturaPadrao = 1080;
-        double larguraPadrao = 1920;
 
         fundo = new Texture[9];
         enfeite = new Texture[7];
@@ -296,21 +314,9 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         minhocaBonusRect = new Rectangle();
         bolhaCircle = new Circle();
 
-        largura = Gdx.graphics.getWidth();
-        altura = Gdx.graphics.getHeight();
-
-        if (ajusteLargura == 0 && ajusteAltura == 0) {
-            ajusteAltura = (float) (altura / alturaPadrao);
-            ajusteLargura = (float) (largura / larguraPadrao);
-        }
-
         metragem = 0;
         alturaObstaculoRandom = new Random();
         obstaculoRandom = new Random();
-
-        setBotoes();
-
-        setAlgas();
 
         obstaculos = new Sprite[11];
 
@@ -347,7 +353,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         obstaculos[10] = anzois[3];
 
         posicaoMovimentoObstaculoHorizontal = new float[4];
-        movimentoEnfeiteHorizontal = largura - enfeite[contaEnfeite].getWidth();
+        movimentoEnfeiteHorizontal = (largura - differenceBetweenWidth) - enfeite[contaEnfeite].getWidth();
 
         numObstaculo = new int[4];
         if (!pausa) {
@@ -358,15 +364,17 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
 
         metros = new BitmapFont();
         recordLabel = new BitmapFont();
-        recordLabel.setColor(Color.WHITE);
+        recordLabel.setColor(Color.YELLOW);
         recordLabel.getData().setScale(6 * ajusteLargura);
+        glyphLayout = new GlyphLayout();
+        glyphLayout.setText(recordLabel, "Record: " + record + "m");
         tap = new BitmapFont();
         userNamefont = new BitmapFont();
-        userNamefont.setColor(Color.WHITE);
+        userNamefont.setColor(Color.YELLOW);
         userNamefont.getData().setScale(3 * ajusteLargura);
-        tap.setColor(Color.WHITE);
+        tap.setColor(Color.YELLOW);
         tap.getData().setScale(5 * ajusteLargura);
-        metros.setColor(Color.WHITE);
+        metros.setColor(Color.YELLOW);
         metros.getData().setScale(6 * ajusteLargura);
         metrosScore = 0;
         velocidadeMetros = 100;
@@ -401,7 +409,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         ALTURA_TOPO = altura - peixe.getHeight() * ajusteAltura;
         VELOCIDADE_QUEDA = (float) (0.7 * (ajusteLargura));
         VELOCIDADE_OBSTACULO = 12 * ajusteLargura;
-        TAP_X = (largura / 8) + peixe.getWidth();
+        TAP_X = ((largura - differenceBetweenWidth) / 8) + peixe.getWidth();
         TAP_Y = altura - 120;
         VELOCIDADE_INICIAL = velocidade;
         VELOCIDADE_METROS_INICIAL = (int) (100 * ajusteLargura);
@@ -409,7 +417,11 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         TOQUES_ANZOL2 = 15;
         TOQUES_ANZOL3 = 20;
         TOQUES_ANZOL4 = 30;
-        ALTURA_SELECT_PEIXE = (float) ((altura) - ((startGame.getHeight() * ajusteLargura * 4.5) + next.getHeight() * ajusteAltura * 2));
+        ALTURA_SELECT_PEIXE = ((altura) - (startGame.getHeight() * ajusteAltura * 5));
+
+        setBotoes();
+        setAlgas();
+
         System.gc();
     }
 
@@ -418,6 +430,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         super.render();
 
         //Limpa tela
+        Gdx.gl.glClearColor(0, 0, 0, 0);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         //Varia o peixe
@@ -481,7 +494,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
             sorteiaProximoObstaculo();
 
             //faz o peixe subir a cada toque na tela
-            if (Gdx.input.justTouched() && !pausa) {
+            if (Gdx.input.justTouched() && !pausa && !musicSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
                 bolhaSound.play(0.1f);
                 iniciado = true;
                 velocidadeQueda = ALTURA_SALTO;
@@ -553,8 +566,9 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         algas[variacaoAlga].draw(batch);
         algas[2].draw(batch);
         batch.draw(peixes[i][variacaoPeixe], POSICAO_HORIZONTAL_PEIXE, posicaoInicialVertical, peixes[i][variacaoPeixe].getWidth() * ajusteLargura, peixes[i][variacaoPeixe].getHeight() * ajusteAltura);
-        batch.draw(pause, largura - (pause.getWidth() * 1.5f), (float) (altura - (minhocasScore[0].getHeight() * ajusteAltura) - (pause.getHeight() * 1.5f * ajusteAltura)), pause.getWidth() * ajusteLargura, pause.getHeight() * ajusteAltura);
-        batch.draw(music, largura - (pause.getWidth() * 1.5f) - (pause.getWidth() * 1.5f), (float) (altura - (minhocasScore[0].getHeight() * ajusteAltura) - (pause.getHeight() * 1.5f * ajusteAltura)), music.getWidth() * ajusteLargura, music.getHeight() * ajusteAltura);
+        batch.draw(pause, (pause.getWidth()), (altura - ((float) pause.getHeight() * ajusteAltura * 1.5f)), pause.getWidth() * ajusteLargura, pause.getHeight() * ajusteAltura);
+        batch.draw(music, (pause.getWidth() * 3f), (altura - ((float) pause.getHeight() * ajusteAltura * 1.5f)), music.getWidth() * ajusteLargura, music.getHeight() * ajusteAltura);
+
         if (!voltando) {
             sobeDesceAnzol();
         }
@@ -630,25 +644,25 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
 
         for (int i = 1; i <= numMinhocas; i++) {
-            batch.draw(minhocasScore[i - 1], (float) (largura - (minhocasScore[i - 1].getWidth() * ajusteLargura * i * 1.5)), (float) (altura - minhocasScore[i - 1].getHeight() * ajusteAltura * 1.5), minhocasScore[i - 1].getWidth() * ajusteLargura, minhocasScore[i - 1].getHeight() * ajusteAltura);
+            batch.draw(minhocasScore[i - 1], (float) ((largura - differenceBetweenWidth) - (minhocasScore[i - 1].getWidth() * ajusteLargura * i * 1.5)), (altura - glyphLayout.height - (minhocasScore[i - 1].getHeight() * ajusteAltura * 1.5f)), minhocasScore[i - 1].getWidth() * ajusteLargura, minhocasScore[i - 1].getHeight() * ajusteAltura);
         }
         if (vidaExtra) {
-            batch.draw(bolha, (float) (largura - (minhocaBonus.getWidth() * ajusteLargura * (numMinhocas + 2) * 1.5)), (float) (altura - minhocaBonus.getHeight() * ajusteAltura * 1.3), bolha.getTexture().getWidth() * ajusteLargura, bolha.getTexture().getHeight() * ajusteAltura);
+            batch.draw(bolha, (float) ((largura - differenceBetweenWidth) - (minhocaBonus.getWidth() * ajusteLargura * (numMinhocas + 2) * 1.5)), (float) (altura - minhocaBonus.getHeight() * ajusteAltura * 1.3), bolha.getTexture().getWidth() * ajusteLargura, bolha.getTexture().getHeight() * ajusteAltura);
         }
 
-        metros.draw(batch, (int) metrosScore + "m", largura / 2 - (metros.getXHeight() / 2), altura - (altura / 10));
-        recordLabel.draw(batch, "Record: " + record + "m", 15, altura - 15);
+        metros.draw(batch, (int) metrosScore + "m", (largura - differenceBetweenWidth) / 2 - (metros.getXHeight() / 2), altura - (altura / 10));
+        recordLabel.draw(batch, glyphLayout, (largura - differenceBetweenWidth - (glyphLayout.width) - 15), altura - 15);
         if (gameOver) {
-            batch.draw(gameOverText, (largura / 2) - (gameOverText.getWidth() * ajusteLargura / 2), (float) (altura - (gameOverText.getHeight() * ajusteAltura * 2.5)), gameOverText.getWidth() * ajusteLargura, gameOverText.getHeight() * ajusteAltura);
-            batch.draw(reload, (largura / 2) - (reload.getWidth() * ajusteLargura), altura / 2, 150 * ajusteLargura, 150 * ajusteAltura);
-            batch.draw(menuBotao, (largura / 2) - (menuBotao.getWidth() * ajusteLargura / 2), (float) ((altura / 3) - menuSprite.getHeight() * ajusteAltura * 1.5), menuBotao.getWidth() * ajusteLargura, menuBotao.getHeight() * ajusteAltura);
+            batch.draw(gameOverText, ((largura - differenceBetweenWidth) / 2) - (gameOverText.getWidth() * ajusteLargura / 2), (float) (altura - (gameOverText.getHeight() * ajusteAltura * 2.5)), gameOverText.getWidth() * ajusteLargura, gameOverText.getHeight() * ajusteAltura);
+            batch.draw(reload, ((largura - differenceBetweenWidth) / 2) - (reload.getWidth() * ajusteLargura), altura / 2, 150 * ajusteLargura, 150 * ajusteAltura);
+            batch.draw(menuBotao, ((largura - differenceBetweenWidth) / 2) - (menuBotao.getWidth() * ajusteLargura / 2), (float) ((altura / 3) - menuSprite.getHeight() * ajusteAltura * 1.5), menuBotao.getWidth() * ajusteLargura, menuBotao.getHeight() * ajusteAltura);
         }
 
         if (mostraTelaSegueJogo) {
-            batch.draw(continueText, (largura / 2) - (continueText.getWidth() * ajusteLargura / 2), (float) (altura - (continueText.getHeight() * ajusteAltura * 2.5)), continueText.getWidth() * ajusteLargura, continueText.getHeight() * ajusteAltura);
-            batch.draw(simBotao, (float) ((largura / 2) - (simBotao.getWidth() * ajusteLargura * 1.5)), (float) ((altura / 3) - simSprite.getHeight() * ajusteAltura * 1.5), simBotao.getWidth() * ajusteLargura, simBotao.getHeight() * ajusteAltura);
-            batch.draw(naoBotao, ((largura / 2) + (naoBotao.getWidth() * ajusteLargura)), (float) ((altura / 3) - naoSprite.getHeight() * ajusteAltura * 1.5), naoBotao.getWidth() * ajusteLargura, naoBotao.getHeight() * ajusteAltura);
-            batch.draw(videoIcon, (float) ((largura / 2) - (simBotao.getWidth() * ajusteLargura * 1.5) + videoIcon.getWidth() * ajusteLargura * 5), (float) ((altura / 3) - simSprite.getHeight() * ajusteAltura * 1.5), simBotao.getWidth() * ajusteLargura, simBotao.getHeight() * ajusteAltura);
+            batch.draw(continueText, ((largura - differenceBetweenWidth) / 2) - (continueText.getWidth() * ajusteLargura / 2), (float) (altura - (continueText.getHeight() * ajusteAltura * 2.5)), continueText.getWidth() * ajusteLargura, continueText.getHeight() * ajusteAltura);
+            batch.draw(simBotao, (float) (((largura - differenceBetweenWidth) / 2) - (simBotao.getWidth() * ajusteLargura * 1.5)), (float) ((altura / 3) - simSprite.getHeight() * ajusteAltura * 1.5), simBotao.getWidth() * ajusteLargura, simBotao.getHeight() * ajusteAltura);
+            batch.draw(naoBotao, (((largura - differenceBetweenWidth) / 2) + (naoBotao.getWidth() * ajusteLargura)), (float) ((altura / 3) - naoSprite.getHeight() * ajusteAltura * 1.5), naoBotao.getWidth() * ajusteLargura, naoBotao.getHeight() * ajusteAltura);
+            batch.draw(videoIcon, (float) (((largura - differenceBetweenWidth) / 2) - (simBotao.getWidth() * ajusteLargura * 1.5) + videoIcon.getWidth() * ajusteLargura * 5), (float) ((altura / 3) - simSprite.getHeight() * ajusteAltura * 1.5), simBotao.getWidth() * ajusteLargura, simBotao.getHeight() * ajusteAltura);
         }
 
         if (voltando) {
@@ -733,27 +747,27 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
 
         batch.begin();
 
-        batch.draw(telaInicial, 0, 0, largura, altura);
-        batch.draw(startGame, (largura / 2) - (startGame.getWidth() * ajusteLargura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)), startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
+        batch.draw(telaInicial, 0, 0, (largura - differenceBetweenWidth), altura);
+        batch.draw(startGame, ((largura - differenceBetweenWidth) / 2) - (startGame.getWidth() * ajusteLargura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)), startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
 
-        batch.draw(terms, largura - ((privacyPolicy.getWidth() / 2f) * ajusteLargura), ((privacyPolicy.getHeight() / 1.5f) * ajusteAltura) + (privacyPolicy.getHeight() * ajusteAltura * 1.2f), (terms.getWidth() / 2f) * ajusteLargura, terms.getHeight() * ajusteAltura);
-        batch.draw(privacyPolicy, largura - ((privacyPolicy.getWidth() / 2f) * ajusteLargura), ((privacyPolicy.getHeight() / 1.5f) * ajusteAltura), (privacyPolicy.getWidth() / 2f) * ajusteLargura, privacyPolicy.getHeight() * ajusteAltura);
+        batch.draw(terms, (largura - differenceBetweenWidth) - ((privacyPolicy.getWidth() / 2f) * ajusteLargura), ((privacyPolicy.getHeight() / 1.5f) * ajusteAltura) + (privacyPolicy.getHeight() * ajusteAltura * 1.2f), (terms.getWidth() / 2f) * ajusteLargura, terms.getHeight() * ajusteAltura);
+        batch.draw(privacyPolicy, (largura - differenceBetweenWidth) - ((privacyPolicy.getWidth() / 2f) * ajusteLargura), ((privacyPolicy.getHeight() / 1.5f) * ajusteAltura), (privacyPolicy.getWidth() / 2f) * ajusteLargura, privacyPolicy.getHeight() * ajusteAltura);
 
-        batch.draw(ranking, (ranking.getWidth() * ajusteLargura) / 2.5f, (altura / 2f) * ajusteAltura, (ranking.getWidth()) * ajusteLargura, ranking.getHeight() * ajusteAltura);
-        batch.draw(loginFb, (loginFb.getWidth() * ajusteLargura) / 10f, (altura / 2f) - (loginFb.getHeight() * 1.5f) * ajusteAltura, (loginFb.getWidth() / 2f) * ajusteLargura, loginFb.getHeight() * ajusteAltura);
+        batch.draw(ranking, (ranking.getWidth() * ajusteLargura) / 2.5f, (altura / 2f), ranking.getWidth() * ajusteLargura, ranking.getHeight() * ajusteAltura);
+        batch.draw(loginFb, (loginFb.getWidth() * ajusteLargura) / 10f, (altura / 2f) - (ranking.getHeight() * ajusteAltura), (loginFb.getWidth() * ajusteLargura / 2f), loginFb.getHeight() * ajusteAltura);
 
         if (userName != null) {
-            userNamefont.draw(batch, userName, (loginFb.getWidth() * ajusteLargura) / 10f, (altura / 2f) - (loginFb.getHeight() * 1.5f) - (loginFb.getHeight() / 10f) * ajusteAltura);
+            userNamefont.draw(batch, userName, (loginFb.getWidth() * ajusteLargura) / 10f, (altura / 2f) - (loginFb.getHeight() * ajusteAltura * 2f) - (loginFb.getHeight() * ajusteAltura) / 10f);
         }
 
         algas[variacaoAlga].draw(batch);
         algas[2].draw(batch);
-        batch.draw(back, (largura / 2) - (peixes[i][0].getWidth() * 1.85f * ajusteLargura), ALTURA_SELECT_PEIXE + (peixes[i][0].getHeight() * ajusteAltura), back.getWidth() * ajusteLargura, back.getHeight() * ajusteAltura);
-        batch.draw(next, (largura / 2) + (peixes[i][0].getWidth() * ajusteLargura), ALTURA_SELECT_PEIXE + (peixes[i][0].getHeight() * ajusteAltura), next.getWidth(), next.getHeight());
-        batch.draw(peixes[i][variacaoPeixe], (largura / 2) - (peixes[i][0].getWidth() * ajusteLargura / 2), ALTURA_SELECT_PEIXE + 70, peixes[i][0].getWidth() * ajusteLargura, peixes[i][0].getHeight() * ajusteAltura);
+        batch.draw(back, ((largura - differenceBetweenWidth) / 2) - (back.getWidth() * 1.85f * ajusteLargura), ALTURA_SELECT_PEIXE + (back.getHeight() * ajusteAltura), back.getWidth() * ajusteLargura, back.getHeight() * ajusteAltura);
+        batch.draw(next, ((largura - differenceBetweenWidth) / 2) + (next.getWidth() * ajusteLargura), ALTURA_SELECT_PEIXE + (next.getHeight() * ajusteAltura), next.getWidth() * ajusteLargura, next.getHeight() * ajusteAltura);
+        batch.draw(peixes[i][variacaoPeixe], ((largura - differenceBetweenWidth) / 2) - (peixes[i][0].getWidth() * ajusteLargura / 2), ALTURA_SELECT_PEIXE + 70, peixes[i][0].getWidth() * ajusteLargura, peixes[i][0].getHeight() * ajusteAltura);
 
         for (int i = 0; i < 10; i++) {
-            if (movimentoBolhaHorizontal[i] >= largura - bolhaInicio.getWidth() * ajusteLargura) {
+            if (movimentoBolhaHorizontal[i] >= (largura - differenceBetweenWidth) - bolhaInicio.getWidth() * ajusteLargura) {
                 bolhaTocouLado[i] = true;
             }
 
@@ -1023,9 +1037,9 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
                 if (toques >= toquesParaSoltar) {
                     posicaoInicialVertical -= 30;
                     posicaoMovimentoObstaculoHorizontal[0] = largura;
-                    posicaoMovimentoObstaculoHorizontal[1] = (float) (largura * 1.5);
+                    posicaoMovimentoObstaculoHorizontal[1] = (float) ((largura - differenceBetweenWidth) * 1.5);
                     posicaoMovimentoObstaculoHorizontal[2] = largura * 2;
-                    posicaoMovimentoObstaculoHorizontal[3] = (float) (largura * 2.5);
+                    posicaoMovimentoObstaculoHorizontal[3] = (float) ((largura - differenceBetweenWidth) * 2.5);
                     gameOver = false;
                     colide = true;
                     posicaoInicialVertical = altura / 2;
@@ -1275,7 +1289,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
                     alturaObstaculo[i] = alturaObstaculoRandom.nextInt((int) (altura - obstaculos[numObstaculo[i]].getHeight() * ajusteAltura / 1.5));
                 }
 
-                posicaoMovimentoObstaculoHorizontal[i] = (largura * multLargura);
+                posicaoMovimentoObstaculoHorizontal[i] = ((largura - differenceBetweenWidth) * multLargura);
                 if (!isSlowShark) {
                     distanciaMinhoca[i] = distanciaMinhocaRandom.nextInt((int) (obstaculos[numObstaculo[i]].getWidth() * ajusteLargura * 2));
                     alturaMinhoca[i] = (int) alturaObstaculo[i] - ((alturaMinhocaRandom.nextInt((int) (obstaculos[numObstaculo[i]].getHeight() * ajusteAltura * 2))));
@@ -1436,71 +1450,71 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         //set Algas
         algas = new Sprite[3];
         algas[0] = new Sprite(new Texture("imagens/enfeites/alga1.png"));
-        algas[0].setPosition(largura / 10, -algas[0].getHeight() * ajusteAltura / 5);
-        algas[0].setSize(algas[0].getWidth() * ajusteLargura, algas[0].getHeight() * ajusteAltura);
+        algas[0].setPosition((largura - differenceBetweenWidth) / 10, -algas[0].getHeight() / 5);
+        algas[0].setSize(algas[0].getWidth(), algas[0].getHeight());
 
         algas[1] = new Sprite(new Texture("imagens/enfeites/algaVaria.png"));
-        algas[1].setPosition(largura / 10, -algas[1].getHeight() * ajusteAltura / 5);
-        algas[1].setSize(algas[1].getWidth() * ajusteLargura, algas[1].getHeight() * ajusteAltura);
+        algas[1].setPosition((largura - differenceBetweenWidth) / 10, -algas[1].getHeight() / 5);
+        algas[1].setSize(algas[1].getWidth(), algas[1].getHeight());
 
         algas[2] = new Sprite(new Texture("imagens/enfeites/alga2.png"));
-        algas[2].setPosition(largura / 2, -algas[2].getHeight() * ajusteAltura / 5);
-        algas[2].setSize(algas[2].getWidth() * ajusteLargura, algas[2].getHeight() * ajusteAltura);
+        algas[2].setPosition((largura - differenceBetweenWidth) / 2, -algas[2].getHeight() / 5);
+        algas[2].setSize(algas[2].getWidth(), algas[2].getHeight());
     }
 
     private void setBotoes() {
         //Sobrepor Botões
         menuSprite = new Sprite(menuBotao);
         menuSprite.setSize(menuSprite.getWidth() * ajusteLargura, menuSprite.getHeight() * ajusteAltura);
-        menuSprite.setPosition((largura / 2) - (menuBotao.getWidth() * ajusteLargura / 2), (float) ((altura / 3) - menuSprite.getHeight() * ajusteAltura * 1.5));
+        menuSprite.setPosition(((largura - differenceBetweenWidth) / 2) - (menuBotao.getWidth() * ajusteLargura / 2), (float) ((altura / 3) - menuSprite.getHeight() * ajusteAltura * 1.5));
 
         simSprite = new Sprite(simBotao);
         simSprite.setSize(simSprite.getWidth() * ajusteLargura, simSprite.getHeight() * ajusteAltura);
-        simSprite.setPosition((float) ((largura / 2) - (simBotao.getWidth() * ajusteLargura * 1.5)), (float) ((altura / 3) - simSprite.getHeight() * ajusteAltura * 1.5));
+        simSprite.setPosition((float) (((largura - differenceBetweenWidth) / 2) - (simBotao.getWidth() * ajusteLargura * 1.5)), (float) ((altura / 3) - simSprite.getHeight() * ajusteAltura * 1.5));
 
         naoSprite = new Sprite(naoBotao);
         naoSprite.setSize(naoSprite.getWidth() * ajusteLargura, naoSprite.getHeight() * ajusteAltura);
-        naoSprite.setPosition(((largura / 2) + (naoBotao.getWidth() * ajusteLargura)), (float) ((altura / 3) - naoSprite.getHeight() * ajusteAltura * 1.5));
+        naoSprite.setPosition((((largura - differenceBetweenWidth) / 2) + (naoBotao.getWidth() * ajusteLargura)), (float) ((altura / 3) - naoSprite.getHeight() * ajusteAltura * 1.5));
 
         playSprite = new Sprite(startGame);
         playSprite.setSize(startGame.getWidth() * ajusteLargura, startGame.getHeight() * ajusteAltura);
-        playSprite.setPosition((largura / 2) - (startGame.getWidth() * ajusteLargura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)));
+        playSprite.setPosition(((largura - differenceBetweenWidth) / 2) - (startGame.getWidth() * ajusteLargura / 2), ((altura) - (startGame.getHeight() * ajusteAltura * 3)));
 
         loginSprite = new Sprite(loginFb);
         loginSprite.setSize((loginFb.getWidth() / 2f) * ajusteLargura, loginFb.getHeight() * ajusteAltura);
-        loginSprite.setPosition((loginFb.getWidth() * ajusteLargura) / 10f, (altura / 2f) - (loginFb.getHeight() * 1.5f) * ajusteAltura);
+        loginSprite.setPosition((loginFb.getWidth() * ajusteLargura) / 10f, (altura / 2f) - (ranking.getHeight() * ajusteAltura));
 
         rankingSprite = new Sprite(ranking);
         rankingSprite.setSize((ranking.getWidth()) * ajusteLargura, ranking.getHeight() * ajusteAltura);
-        rankingSprite.setPosition((ranking.getWidth() * ajusteLargura) / 2.5f, (altura / 2f) * ajusteAltura);
+        rankingSprite.setPosition((ranking.getWidth() * ajusteLargura) / 2.5f, (altura / 2f));
 
         termsSprite = new Sprite(terms);
         termsSprite.setSize((terms.getWidth() / 2f) * ajusteLargura, terms.getHeight() * ajusteAltura);
-        termsSprite.setPosition(largura - ((privacyPolicy.getWidth() / 2f) * ajusteLargura), ((privacyPolicy.getHeight() / 1.5f) * ajusteAltura) + (privacyPolicy.getHeight() * ajusteAltura * 1.2f));
+        termsSprite.setPosition((largura - differenceBetweenWidth) - ((privacyPolicy.getWidth() / 2f) * ajusteLargura), ((privacyPolicy.getHeight() / 1.5f) * ajusteAltura) + (privacyPolicy.getHeight() * ajusteAltura * 1.2f));
 
         privacyPolicySprite = new Sprite(privacyPolicy);
         privacyPolicySprite.setSize((privacyPolicy.getWidth() / 2f) * ajusteLargura, privacyPolicy.getHeight() * ajusteAltura);
-        privacyPolicySprite.setPosition(largura - ((privacyPolicy.getWidth() / 2f) * ajusteLargura), ((privacyPolicy.getHeight() / 1.5f) * ajusteAltura));
+        privacyPolicySprite.setPosition((largura - differenceBetweenWidth) - ((privacyPolicy.getWidth() / 2f) * ajusteLargura), ((privacyPolicy.getHeight() / 1.5f) * ajusteAltura));
 
         replaySprite = new Sprite(reload);
         replaySprite.setSize(150 * ajusteLargura, 150 * ajusteAltura);
-        replaySprite.setPosition((largura / 2) - (reload.getWidth() * ajusteLargura), altura / 2);
+        replaySprite.setPosition(((largura - differenceBetweenWidth) / 2) - (reload.getWidth() * ajusteLargura), altura / 2);
 
         pauseSprite = new Sprite(pause);
         pauseSprite.setSize(pause.getWidth() * ajusteLargura, pause.getHeight() * ajusteAltura);
-        pauseSprite.setPosition(largura - (pause.getWidth() * 1.5f), (float) (altura - (minhocasScore[0].getHeight() * ajusteAltura)));
+        pauseSprite.setPosition(pause.getWidth(), (altura - ((float) pause.getHeight() * 1.5f)));
 
         musicSprite = new Sprite(music);
         musicSprite.setSize(music.getWidth() * ajusteLargura, music.getHeight() * ajusteAltura);
-        musicSprite.setPosition(largura - (pause.getWidth() * 1.5f) - (pause.getWidth() * 1.5f), (float) (altura - (minhocasScore[0].getHeight() * ajusteAltura)));
+        musicSprite.setPosition(music.getWidth() * 3, (altura - ((float) pause.getHeight() * 1.5f)));
 
         nextSprite = new Sprite(next);
         nextSprite.setSize(next.getWidth() * ajusteLargura, next.getHeight() * ajusteAltura);
-        nextSprite.setPosition((largura / 2) + (peixes[i][0].getWidth() * ajusteLargura), ALTURA_SELECT_PEIXE + (peixes[i][0].getHeight() * ajusteAltura));
+        nextSprite.setPosition(((largura - differenceBetweenWidth) / 2) + (next.getWidth() * ajusteLargura * 2), ALTURA_SELECT_PEIXE + (next.getHeight() * ajusteAltura));
 
         backSprite = new Sprite(back);
         backSprite.setSize(back.getWidth() * ajusteLargura, back.getHeight() * ajusteAltura);
-        backSprite.setPosition((largura / 2) - (peixes[i][0].getWidth() * 1.85f * ajusteLargura), ALTURA_SELECT_PEIXE + (peixes[i][0].getHeight() * ajusteAltura));
+        backSprite.setPosition(((largura - differenceBetweenWidth) / 2) - (back.getWidth() * 1.5f * ajusteLargura), ALTURA_SELECT_PEIXE + (back.getHeight() * ajusteAltura));
     }
 
     private void setSounds() {
@@ -1546,5 +1560,18 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
     @Override
     public void userLoggedOut() {
         changeLoginButton(null);
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        super.resize(width, height);
+        largura = width;
+        altura = height;
+        ajusteAltura = (float) (altura / alturaPadrao);
+        ajusteLargura = (float) (largura / larguraPadrao);
+        differenceBetweenWidth = largura - originalWidth;
+        viewport.update(width, height, true);
+        setBotoes();
+        setAlgas();
     }
 }
