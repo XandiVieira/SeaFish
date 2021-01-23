@@ -8,11 +8,8 @@
             <corners
                 android:bottomLeftRadius="0dp"
                 android:bottomRightRadius="10dp"
-                android:radius="2dp"
+                android:radius="20dp"
                 android:topRightRadius="10dp" />
-            <stroke
-                android:width="10dp"
-                android:color="@color/dark_blue" />
         </shape>
     </item>
     <item android:drawable="@drawable/detailsbackground" />

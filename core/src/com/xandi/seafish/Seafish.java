@@ -435,8 +435,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         TOQUES_ANZOL4 = 30;
         ALTURA_SELECT_PEIXE = ((altura) - (startGame.getHeight() * ajusteAltura * 5));
 
-        setBotoes();
-        setAlgas();
+        setButtons();
+        setSeaweed();
 
         caughtWarms = 0;
         caughtSpecialWarms = 0;
@@ -458,19 +458,19 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         //Varia o peixe
         variacaoPeixeAux += (float) 0.05;
         variacaoAlgaAux += (float) 0.009;
-        variaPeixe();
+        VaryFish();
 
         switch (estado) {
             case 0:
                 menuState();
                 break;
             case 1:
-                jogoState();
+                gameState();
                 break;
         }
     }
 
-    private void jogoState() {
+    private void gameState() {
         handler.showBannerAd(false);
         //Impede que peixe vá pra baixo do chão (bug)
         if (posicaoInicialVertical < 10) {
@@ -501,8 +501,8 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
                 movimentoEnfeiteHorizontal = largura + enfeite[contaEnfeite].getWidth();
             }
 
-            variaCardume();
-            variaTubarao();
+            VaryShoal();
+            varyShark();
 
             //controla a velocidade do jogo
             if (iniciado) {
@@ -511,7 +511,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
                 }
             }
 
-            controlaRotacaoAlga(true);
+            controlSeaweedRotation(true);
 
             sortNextTackle();
 
@@ -592,7 +592,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         batch.draw(music, (pause.getWidth() * 3f), (altura - ((float) pause.getHeight() * ajusteAltura * 1.5f)), music.getWidth() * ajusteLargura, music.getHeight() * ajusteAltura);
 
         if (!voltando) {
-            sobeDesceAnzol();
+            upAndDownHook();
         }
         for (int i = 0; i < numObstaculo.length; i++) {
             if (numObstaculo[i] > 6) {
@@ -650,16 +650,16 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
 
         if (Intersector.overlaps(peixeCircle, minhocasRect[0])) {
-            contaMinhoca(0);
+            countWarm(0);
             minhocaColidiu[0] = true;
         } else if (Intersector.overlaps(peixeCircle, minhocasRect[1])) {
-            contaMinhoca(1);
+            countWarm(1);
             minhocaColidiu[1] = true;
         } else if (Intersector.overlaps(peixeCircle, minhocasRect[2])) {
-            contaMinhoca(2);
+            countWarm(2);
             minhocaColidiu[2] = true;
         } else if (Intersector.overlaps(peixeCircle, minhocasRect[3])) {
-            contaMinhoca(3);
+            countWarm(3);
             minhocaColidiu[3] = true;
         } else {
             colidiuMinhoca[0] = false;
@@ -824,10 +824,10 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
 
         batch.end();
 
-        controlaRotacaoAlga(false);
-        variaAlga();
+        controlSeaweedRotation(false);
+        varySeaweed();
 
-        selecionaPeixe();
+        selectFish();
     }
 
     private void changeLoginButton(String name) {
@@ -849,7 +849,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
     }
 
-    private void sobeDesceAnzol() {
+    private void upAndDownHook() {
         for (int i = 0; i < anzolTocouTopo.length; i++) {
             if (movimentoAnzolVertical[i] >= altura - 10) {
                 anzolTocouTopo[i] = true;
@@ -869,7 +869,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
     }
 
-    private void variaTubarao() {
+    private void varyShark() {
         if (variacaoTubarao > 1) {
             variacaoTubarao = 0;
         } else if (variacaoTubarao >= 0.5) {
@@ -879,7 +879,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
     }
 
-    private void variaAlga() {
+    private void varySeaweed() {
         if (variacaoAlgaAux > 1) {
             variacaoAlgaAux = 0;
         }
@@ -890,7 +890,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
     }
 
-    private void variaPeixe() {
+    private void VaryFish() {
         if (!isShark) {
             if (variacaoPeixeAux > 2) {
                 variacaoPeixeAux = 0;
@@ -918,7 +918,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
     }
 
-    private void variaCardume() {
+    private void VaryShoal() {
         if (variacaoCardume > 1) {
             variacaoCardume = 0;
         } else if (variacaoCardume >= 0.5) {
@@ -928,7 +928,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
     }
 
-    private void selecionaPeixe() {
+    private void selectFish() {
         if (Gdx.input.justTouched()) {
             if (backSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
                 if (fishNumber == 0) {
@@ -949,7 +949,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
     }
 
-    private void controlaRotacaoAlga(boolean mudaPosicao) {
+    private void controlSeaweedRotation(boolean changePosition) {
         if (controlRotation) {
             if (algas[2].getRotation() <= -35 * (ajusteLargura)) {
                 controlRotation = false;
@@ -961,7 +961,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
             }
             algas[2].rotate((float) 0.4 * ajusteLargura);
         }
-        if (mudaPosicao) {
+        if (changePosition) {
             algas[variacaoAlga].setPosition(posicaoMovimentoObstaculoHorizontal[variacaoAlga], ((-algas[variacaoAlga].getTexture().getHeight()) * ajusteAltura) / 5);
             algas[2].setPosition(posicaoMovimentoObstaculoHorizontal[2], ((-algas[2].getTexture().getHeight()) * ajusteAltura) / 5);
         }
@@ -969,13 +969,13 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
 
     private void testHook() {
         if (Intersector.overlaps(peixeCircle, anzoisCircle[0])) {
-            voltaProInicio(1);
+            backToStart(1);
         } else if (Intersector.overlaps(peixeCircle, anzoisCircle[1])) {
-            voltaProInicio(2);
+            backToStart(2);
         } else if (Intersector.overlaps(peixeCircle, anzoisCircle[2])) {
-            voltaProInicio(3);
+            backToStart(3);
         } else if (Intersector.overlaps(peixeCircle, anzoisCircle[3])) {
-            voltaProInicio(4);
+            backToStart(4);
         } else {
             voltando = false;
             if (!mostraTelaSegueJogo) {
@@ -984,7 +984,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
     }
 
-    private void voltaProInicio(float circle) {
+    private void backToStart(float circle) {
         if (!voltando) {
             caughtByHook++;
         }
@@ -1035,7 +1035,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
             movimentoEnfeiteHorizontal += velocidade * VELOCIDADE_OBSTACULO;
 
             if (metrosScore > 0) {
-                sorteiaObstaculoAnterior();
+                sortPreviousTackle();
             } else {
                 gameOver = false;
                 colide = true;
@@ -1106,25 +1106,25 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
     }
 
-    private void contaMinhoca(int numMinhoca) {
-        if (!colidiuMinhoca[numMinhoca]) {
+    private void countWarm(int warmNumber) {
+        if (!colidiuMinhoca[warmNumber]) {
             if (numMinhocas <= 9) {
                 if (!isSlowShark) {
                     numMinhocas++;
                     caughtWarms++;
                     eatSound.play(0.9f);
-                    colidiuMinhoca[numMinhoca] = true;
+                    colidiuMinhoca[warmNumber] = true;
                 }
             } else if (!isShark) {
                 numMinhocas = 1;
                 colide = false;
-                mudaFundo();
+                changeBackground();
                 turnedShark++;
             }
         }
     }
 
-    private void mudaFundo() {
+    private void changeBackground() {
         if (contaFundo <= 5) {
             contaFundo++;
             contaEnfeite++;
@@ -1145,7 +1145,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
             isShark = true;
         } else if (countSharkMeters <= 190) {
             if (countSharkMeters % 5 == 0) {
-                mudaFundo();
+                changeBackground();
             }
             isSlowShark = true;
             isShark = true;
@@ -1343,7 +1343,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
     }
 
-    private void sorteiaObstaculoAnterior() {
+    private void sortPreviousTackle() {
         float multLargura = (float) 2.5;
         //Verifica se o obstáculo saiu da tela e manda o próximo obstáculo
         for (int i = 0; i < posicaoMovimentoObstaculoHorizontal.length; i++) {
@@ -1373,7 +1373,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
     }
 
-    private void setPeixes() {
+    private void setFishes() {
         peixes[0][0] = new Sprite(new Texture("imagens/personagens/peixe1.png"));
         peixes[0][1] = new Sprite(new Texture("imagens/personagens/peixe12.png"));
         peixes[0][2] = new Sprite(new Texture("imagens/personagens/peixe1red.png"));
@@ -1462,7 +1462,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         privacyPolicy = new Texture("imagens/botoes/privacypolicy.png");
         next = new Texture("imagens/botoes/next.png");
         back = new Texture("imagens/botoes/back.png");
-        setPeixes();
+        setFishes();
         cardumes[0] = new Sprite(new Texture("imagens/obstaculos/piranhas.png"));
         cardumes[1] = new Sprite(new Texture("imagens/obstaculos/piranhas2.png"));
         tubaroes[0] = new Sprite(new Texture("imagens/obstaculos/tubaraoinimigo2.png"));
@@ -1489,7 +1489,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         enfeite[6] = new Texture("imagens/enfeites/enfeite7.png");
     }
 
-    private void setAlgas() {
+    private void setSeaweed() {
         //set Algas
         algas = new Sprite[3];
         algas[0] = new Sprite(new Texture("imagens/enfeites/alga1.png"));
@@ -1505,7 +1505,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         algas[2].setSize(algas[2].getWidth(), algas[2].getHeight());
     }
 
-    private void setBotoes() {
+    private void setButtons() {
         //Sobrepor Botões
         menuSprite = new Sprite(menuBotao);
         menuSprite.setSize(menuSprite.getWidth() * ajusteLargura, menuSprite.getHeight() * ajusteAltura);
@@ -1614,7 +1614,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         ajusteLargura = (float) (largura / larguraPadrao);
         differenceBetweenWidth = largura - originalWidth;
         viewport.update(width, height, true);
-        setBotoes();
-        setAlgas();
+        setButtons();
+        setSeaweed();
     }
 }
