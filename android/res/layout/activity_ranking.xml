@@ -27,7 +27,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@color/blue"
+            android:background="@color/accent"
             android:gravity="start"
             android:text="@string/position"
             android:textColor="@color/black"
