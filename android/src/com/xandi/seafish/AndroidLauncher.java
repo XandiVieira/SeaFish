@@ -44,6 +44,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.xandi.seafish.activity.PrivacyPolicyActivity;
+import com.xandi.seafish.activity.RankingActivity;
 import com.xandi.seafish.activity.TermsActivity;
 import com.xandi.seafish.interfaces.AdService;
 import com.xandi.seafish.interfaces.FacebookAuth;
@@ -306,11 +307,11 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
     @Override
     public void callRanking() {
-        startActivity(new Intent(getApplicationContext(), com.xandi.seafish.activity.Ranking.class));
+        startActivity(new Intent(getApplicationContext(), RankingActivity.class));
     }
 
     @Override
-    public void saveRecord(int score) {
+    public void saveRecord(int score, String usedFish, String deathTackle, int caughtWarms, int caughtSpecialWarms, int turnedShark, int caughtBubbles, int caughtByHook) {
         if (firebaseUser != null) {
             Util.mDatabaseUserRef.child(firebaseUser.getUid()).addValueEventListener(new ValueEventListener() {
                 @Override
@@ -319,30 +320,30 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
                     User user = snapshot.getValue(User.class);
                     if (user != null) {
                         if (score > user.getPersonalRecord()) {
-                            mUserDatabaseRef.child(user.getUid()).child(Constants.DATABASE_REF_PERSONAL_SCORE).setValue(score);
-                            Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).limitToLast(Constants.RANKING_SIZE).addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                    Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).limitToLast(Constants.RANKING_SIZE).removeEventListener(this);
-                                    if (snapshot.getChildrenCount() >= Constants.RANKING_SIZE) {
-                                        for (DataSnapshot snap : snapshot.getChildren()) {
-                                            Position position = snap.getValue(Position.class);
-                                            if (position != null && score > position.getScore()) {
-                                                Util.mDatabaseRankingRef.push().setValue(new Position(user.getUid(), score));
-                                                break;
-                                            }
-                                        }
-                                    } else {
-                                        Util.mDatabaseRankingRef.push().setValue(new Position(user.getUid(), score));
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError error) {
-
-                                }
-                            });
+                            Util.mDatabaseUserRef.child(firebaseUser.getUid()).child(Constants.DATABASE_REF_PERSONAL_RECORD).setValue(score);
                         }
+                        Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).limitToLast(Constants.RANKING_SIZE).addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).limitToLast(Constants.RANKING_SIZE).removeEventListener(this);
+                                if (snapshot.getChildrenCount() >= Constants.RANKING_SIZE) {
+                                    for (DataSnapshot snap : snapshot.getChildren()) {
+                                        Position position = snap.getValue(Position.class);
+                                        if (position != null && score > position.getScore()) {
+                                            Util.mDatabaseRankingRef.push().setValue(new Position(user.getUid(), score, usedFish, deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook));
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    Util.mDatabaseRankingRef.push().setValue(new Position(user.getUid(), score, usedFish, deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook));
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
                     }
                 }
 

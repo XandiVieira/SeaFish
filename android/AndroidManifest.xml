@@ -57,7 +57,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".activity.Ranking" />
+        <activity android:name=".activity.RankingActivity" />
         <activity android:name=".activity.TermsActivity" />
         <activity android:name=".activity.PrivacyPolicyActivity" />
 

@@ -5,7 +5,7 @@ public class Constants {
     public static final String DATABASE_REF_RANKING = "ranking";
     public static final String DATABASE_REF_USER = "user";
     public static final String DATABASE_REF_SCORE = "score";
-    public static final String DATABASE_REF_PERSONAL_SCORE = "personalRecord";
+    public static final String DATABASE_REF_PERSONAL_RECORD = "personalRecord";
     public static final int RANKING_SIZE = 100;
 
     //Legal documents

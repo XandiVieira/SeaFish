@@ -16,7 +16,10 @@ import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.xandi.seafish.AndroidLauncher;
 import com.xandi.seafish.R;
+import com.xandi.seafish.activity.RankingActivity;
+import com.xandi.seafish.dialog.ShowRankingDetailsDialog;
 import com.xandi.seafish.model.Position;
 import com.xandi.seafish.model.User;
 import com.xandi.seafish.util.Util;
@@ -45,6 +48,7 @@ public class RecyclerViewPositionAdapter extends RecyclerView.Adapter<RecyclerVi
     @Override
     public void onBindViewHolder(@NonNull final RecyclerViewPositionAdapter.ViewHolder holder, int pos) {
         Position position = elements.get(pos);
+        final String[] username = new String[1];
 
         if (position.getUserUid().equals(userUid)) {
             //holder.background.setBackground(context.getResources().getDrawable(R.drawable.my_position_shape));
@@ -72,6 +76,7 @@ public class RecyclerViewPositionAdapter extends RecyclerView.Adapter<RecyclerVi
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 User user = snapshot.getValue(User.class);
                 if (user != null) {
+                    username[0] = user.getName();
                     Glide.with(context).load(user.getPhotoPath()).apply(RequestOptions.circleCropTransform()).into(holder.photo);
                     holder.position.setText((pos + 1) + "º");
                     holder.name.setText(user.getName());
@@ -83,6 +88,11 @@ public class RecyclerViewPositionAdapter extends RecyclerView.Adapter<RecyclerVi
             public void onCancelled(@NonNull DatabaseError error) {
 
             }
+        });
+
+        holder.background.setOnClickListener(v -> {
+            ShowRankingDetailsDialog showRankingDetailsDialog = new ShowRankingDetailsDialog(context, position, username[0], pos);
+            showRankingDetailsDialog.show();
         });
     }
 
