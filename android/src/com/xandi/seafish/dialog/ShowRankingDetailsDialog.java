@@ -59,41 +59,41 @@ public class ShowRankingDetailsDialog extends Dialog {
         sharkQuantity.setText(String.valueOf(position.getTurnedShark()));
         hookQuantity.setText(String.valueOf(position.getCaughtByHook()));
 
-        if (position.getUsedFish().contains("peixe1.png")) {
+        if (position.getUsedFish().contains("peixe1")) {
             fish.setImageDrawable(context.getResources().getDrawable(R.drawable.peixe1));
             shark.setImageDrawable(context.getResources().getDrawable(R.drawable.tubarao1));
-        } else if (position.getUsedFish().contains("peixe2.png")) {
+        } else if (position.getUsedFish().contains("peixe2")) {
             fish.setImageDrawable(context.getResources().getDrawable(R.drawable.peixe2));
             shark.setImageDrawable(context.getResources().getDrawable(R.drawable.tubarao2));
-        } else if (position.getUsedFish().contains("peixe3.png")) {
+        } else if (position.getUsedFish().contains("peixe3")) {
             fish.setImageDrawable(context.getResources().getDrawable(R.drawable.peixe3));
             shark.setImageDrawable(context.getResources().getDrawable(R.drawable.tubarao3));
-        } else if (position.getUsedFish().contains("peixe4.png")) {
+        } else if (position.getUsedFish().contains("peixe4")) {
             fish.setImageDrawable(context.getResources().getDrawable(R.drawable.peixe4));
             shark.setImageDrawable(context.getResources().getDrawable(R.drawable.tubarao4));
-        } else if (position.getUsedFish().contains("peixe5.png")) {
+        } else if (position.getUsedFish().contains("peixe5")) {
             fish.setImageDrawable(context.getResources().getDrawable(R.drawable.peixe5));
             shark.setImageDrawable(context.getResources().getDrawable(R.drawable.tubarao5));
-        } else if (position.getUsedFish().contains("peixe6.png")) {
+        } else if (position.getUsedFish().contains("peixe6")) {
             fish.setImageDrawable(context.getResources().getDrawable(R.drawable.peixe6));
             shark.setImageDrawable(context.getResources().getDrawable(R.drawable.tubarao6));
-        } else if (position.getUsedFish().contains("peixe7.png")) {
+        } else if (position.getUsedFish().contains("peixe7")) {
             fish.setImageDrawable(context.getResources().getDrawable(R.drawable.peixe7));
             shark.setImageDrawable(context.getResources().getDrawable(R.drawable.tubarao7));
         }
-        if (position.getDeathTackle().contains("canudo.png")) {
+        if (position.getDeathTackle().contains("canudo")) {
             deathTackle.setImageDrawable(context.getResources().getDrawable(R.drawable.canudo));
-        } else if (position.getDeathTackle().contains("baiacu.png")) {
+        } else if (position.getDeathTackle().contains("baiacu")) {
             deathTackle.setImageDrawable(context.getResources().getDrawable(R.drawable.baiacu));
-        } else if (position.getDeathTackle().contains("garrafa.png")) {
+        } else if (position.getDeathTackle().contains("garrafa")) {
             deathTackle.setImageDrawable(context.getResources().getDrawable(R.drawable.garrafa));
-        } else if (position.getDeathTackle().contains("piranhas.png")) {
+        } else if (position.getDeathTackle().contains("piranhas")) {
             deathTackle.setImageDrawable(context.getResources().getDrawable(R.drawable.piranhas));
-        } else if (position.getDeathTackle().contains("pneu.png")) {
+        } else if (position.getDeathTackle().contains("pneu")) {
             deathTackle.setImageDrawable(context.getResources().getDrawable(R.drawable.pneu));
-        } else if (position.getDeathTackle().contains("tubaraoinimigo2.png")) {
+        } else if (position.getDeathTackle().contains("tubaraoinimigo2")) {
             deathTackle.setImageDrawable(context.getResources().getDrawable(R.drawable.tubaraoinimigo2));
-        } else if (position.getDeathTackle().contains("plastico.png")) {
+        } else if (position.getDeathTackle().contains("plastico")) {
             deathTackle.setImageDrawable(context.getResources().getDrawable(R.drawable.plastico));
         }
         hook.setImageDrawable(context.getResources().getDrawable(R.drawable.anzol));
