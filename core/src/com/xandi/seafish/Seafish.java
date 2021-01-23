@@ -1241,7 +1241,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
     }
 
     private void saveScores() {
-        rankingInterface.saveRecord((int) metrosScore, peixe.getTexture().toString(), deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook);
+        rankingInterface.saveRecord((int) metrosScore, peixes[fishNumber][variacaoPeixe].getTexture().toString(), deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook);
         if (metrosScore > record) {
             prefs.putInteger("score", (int) metrosScore);
             prefs.flush();

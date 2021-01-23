@@ -16,9 +16,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
-import com.xandi.seafish.AndroidLauncher;
 import com.xandi.seafish.R;
-import com.xandi.seafish.activity.RankingActivity;
 import com.xandi.seafish.dialog.ShowRankingDetailsDialog;
 import com.xandi.seafish.model.Position;
 import com.xandi.seafish.model.User;
@@ -80,7 +78,7 @@ public class RecyclerViewPositionAdapter extends RecyclerView.Adapter<RecyclerVi
                     Glide.with(context).load(user.getPhotoPath()).apply(RequestOptions.circleCropTransform()).into(holder.photo);
                     holder.position.setText((pos + 1) + "º");
                     holder.name.setText(user.getName());
-                    holder.score.setText(String.valueOf(position.getScore()));
+                    holder.score.setText(position.getScore() + "m");
                 }
             }
 

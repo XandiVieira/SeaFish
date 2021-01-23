@@ -21,12 +21,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
+        android:gravity="center"
         android:orientation="horizontal">
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
+            android:background="@color/blue"
+            android:gravity="start"
             android:text="@string/position"
             android:textColor="@color/black"
             android:textSize="20sp"
@@ -35,9 +37,8 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="5dp"
-            android:layout_marginRight="5dp"
             android:layout_weight="1"
+            android:background="@color/accent"
             android:gravity="center"
             android:text="@string/player"
             android:textColor="@color/black"
@@ -48,8 +49,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginHorizontal="5dp"
             android:layout_weight="2"
+            android:background="@color/accent"
             android:text="@string/score"
             android:textColor="@color/black"
             android:textSize="20sp"

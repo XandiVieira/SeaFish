@@ -87,7 +87,7 @@ public class ShowRankingDetailsDialog extends Dialog {
             deathTackle.setImageDrawable(context.getResources().getDrawable(R.drawable.baiacu));
         } else if (position.getDeathTackle().contains("garrafa.png")) {
             deathTackle.setImageDrawable(context.getResources().getDrawable(R.drawable.garrafa));
-        } else if (position.getDeathTackle().contains("piranha.spng")) {
+        } else if (position.getDeathTackle().contains("piranhas.spng")) {
             deathTackle.setImageDrawable(context.getResources().getDrawable(R.drawable.piranhas));
         } else if (position.getDeathTackle().contains("pneu.png")) {
             deathTackle.setImageDrawable(context.getResources().getDrawable(R.drawable.pneu));
