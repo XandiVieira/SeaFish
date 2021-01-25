@@ -669,7 +669,7 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
         }
 
         for (int i = 1; i <= numMinhocas; i++) {
-            batch.draw(minhocasScore[i - 1], (float) ((width - differenceBetweenWidth) - (minhocasScore[i - 1].getWidth() * adjustWidth * i * 1.25)), (height - recordLayout.height - (minhocasScore[i - 1].getHeight() * adjustHeight * 1.5f)), minhocasScore[i - 1].getWidth() * adjustWidth, minhocasScore[i - 1].getHeight() * adjustHeight);
+            batch.draw(minhocasScore[i - 1], (float) ((width - differenceBetweenWidth) - (minhocasScore[i - 1].getWidth() * adjustWidth * i * 1.15)), (height - recordLayout.height - (minhocasScore[i - 1].getHeight() * adjustHeight * 1.5f)), minhocasScore[i - 1].getWidth() * adjustWidth, minhocasScore[i - 1].getHeight() * adjustHeight);
         }
         if (vidaExtra) {
             batch.draw(bolha, ((width - differenceBetweenWidth) / 2), (float) (height - minhocaBonus.getHeight() * adjustHeight * 1.3), bolha.getTexture().getWidth() * adjustWidth, bolha.getTexture().getHeight() * adjustHeight);
