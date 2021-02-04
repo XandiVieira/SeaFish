@@ -1604,7 +1604,6 @@ public class Seafish extends ApplicationAdapter implements VideoEventListener, L
             record = personalRecord.intValue();
             recordLayout = new GlyphLayout();
             recordLayout.setText(recordLabel, "Record: " + record + "m");
-            setFishes();
         }
     }
 
