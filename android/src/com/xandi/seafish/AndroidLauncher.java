@@ -1,6 +1,7 @@
 package com.xandi.seafish;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,9 +10,18 @@ import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
 
+import androidx.annotation.NonNull;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
@@ -21,14 +31,52 @@ import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.reward.RewardItem;
 import com.google.android.gms.ads.reward.RewardedVideoAd;
 import com.google.android.gms.ads.reward.RewardedVideoAdListener;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FacebookAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserInfo;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.xandi.seafish.activity.PrivacyPolicyActivity;
+import com.xandi.seafish.activity.RankingActivity;
+import com.xandi.seafish.activity.TermsActivity;
+import com.xandi.seafish.interfaces.AdService;
+import com.xandi.seafish.interfaces.FacebookAuth;
+import com.xandi.seafish.interfaces.GoogleServices;
+import com.xandi.seafish.interfaces.LoginCallback;
+import com.xandi.seafish.interfaces.PrivacyPolicyAndTerms;
+import com.xandi.seafish.interfaces.RankingInterface;
+import com.xandi.seafish.interfaces.VideoEventListener;
+import com.xandi.seafish.model.Position;
+import com.xandi.seafish.model.User;
+import com.xandi.seafish.util.Constants;
+import com.xandi.seafish.util.Util;
 
-public class AndroidLauncher extends AndroidApplication implements AdService, GoogleServices, RewardedVideoAdListener {
+import java.util.Arrays;
+
+public class AndroidLauncher extends AndroidApplication implements AdService, GoogleServices, RewardedVideoAdListener, RankingInterface, FacebookAuth, PrivacyPolicyAndTerms {
 
     private static final String TAG = "AndroidLauncher";
     private final int SHOW_ADS = 1;
     private final int HIDE_ADS = 0;
     AdView bannerAd;
     private boolean is_video_ad_loaded;
+
+    private CallbackManager callbackManager;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseAuth.AuthStateListener firebaseAuthListener;
+    private boolean isLoggedIn = false;
+    private User user;
+    private DatabaseReference mRankingDatabaseRef;
+    private DatabaseReference mUserDatabaseRef;
+    private FirebaseUser firebaseUser;
+    private String firebaseInstanceId;
 
     @SuppressLint("HandlerLeak")
     protected Handler handler = new Handler() {
@@ -54,14 +102,14 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     private static final String REWARDED_VIDEO_AD_UNIT_ID = "ca-app-pub-1676578761693318/4622601407";
 
     private RewardedVideoAd adRewardedVideoView;
-    private VideoEventListener vel;
+    private VideoEventListener videoEventListener;
+    private LoginCallback loginCallback;
 
     public void callFullScreen() {
         View v = this.getWindow().getDecorView();
-        if (Build.VERSION.SDK_INT < 19) { // lower api
+        if (Build.VERSION.SDK_INT < 19) {
             v.setSystemUiVisibility(View.GONE);
         } else {
-            //for new api versions.
             int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
             v.setSystemUiVisibility(uiOptions);
         }
@@ -76,14 +124,29 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        //fullScreencall();
+        FacebookSdk.sdkInitialize(getApplicationContext());
 
         RelativeLayout layout = new RelativeLayout(this);
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-        View gameView = initializeForView(new Seafish(this, this), config);
+        View gameView = initializeForView(new Seafish(this, this, this, this, this), config);
 
         layout.addView(gameView);
+
+        startFirebaseInstances();
+        firebaseAuthListener = firebaseAuth -> {
+            firebaseUser = firebaseAuth.getCurrentUser();
+            if (firebaseUser != null) {
+                Util.setUserUid(firebaseUser.getUid());
+                getUserDataFromFirebase(firebaseUser.getUid());
+            }
+            isLoggedIn = firebaseUser != null;
+            if (isLoggedIn) {
+                loginCallback.userLoggedIn(firebaseUser.getDisplayName(), null);
+            }
+        };
+
+        firebaseAuth = FirebaseAuth.getInstance();
+        firebaseAuth.addAuthStateListener(firebaseAuthListener);
 
         bannerAd = new AdView(this);
         bannerAd.setAdListener(new AdListener() {
@@ -92,7 +155,6 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
                 Log.i(TAG, "Ad Loaded...");
             }
         });
-
 
         bannerAd.setAdSize(AdSize.SMART_BANNER);
         bannerAd.setAdUnitId(AD_UNIT_ID_BANNER);
@@ -111,6 +173,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
         setupInterstitialAds();
         setupRewarded();
     }
+
 
     public void loadRewardedVideoAd() {
         AdRequest.Builder builder = new AdRequest.Builder();
@@ -152,7 +215,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
     @Override
     public void setVideoEventListener(VideoEventListener listener) {
-        this.vel = listener;
+        this.videoEventListener = listener;
     }
 
     public void setupInterstitialAds() {
@@ -172,7 +235,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     }
 
     @Override
-    public void showinterstitialAd(final Runnable then) {
+    public void showInterstitialAd(final Runnable then) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -195,8 +258,8 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
     @Override
     public void onRewardedVideoAdLoaded() {
-        if (vel != null) {
-            vel.onRewardedVideoAdLoadedEvent();
+        if (videoEventListener != null) {
+            videoEventListener.onRewardedVideoAdLoadedEvent();
         }
         is_video_ad_loaded = true;
     }
@@ -215,15 +278,15 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     public void onRewardedVideoAdClosed() {
         is_video_ad_loaded = false;
         loadRewardedVideoAd();
-        if (vel != null) {
-            vel.onRewardedVideoAdClosedEvent();
+        if (videoEventListener != null) {
+            videoEventListener.onRewardedVideoAdClosedEvent();
         }
     }
 
     @Override
     public void onRewarded(RewardItem rewardItem) {
-        if (vel != null) {
-            vel.onRewardedEvent();
+        if (videoEventListener != null) {
+            videoEventListener.onRewardedEvent();
         }
     }
 
@@ -240,5 +303,177 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     @Override
     public void onRewardedVideoCompleted() {
 
+    }
+
+    @Override
+    public void callRanking() {
+        startActivity(new Intent(getApplicationContext(), RankingActivity.class));
+    }
+
+    @Override
+    public void saveRecord(int score, String usedFish, String deathTackle, int caughtWarms, int caughtSpecialWarms, int turnedShark, int caughtBubbles, int caughtByHook) {
+        if (firebaseUser != null) {
+            Util.mDatabaseUserRef.child(firebaseUser.getUid()).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    Util.mDatabaseUserRef.child(firebaseUser.getUid()).removeEventListener(this);
+                    User user = snapshot.getValue(User.class);
+                    if (user != null) {
+                        if (score > user.getPersonalRecord()) {
+                            Util.mDatabaseUserRef.child(firebaseUser.getUid()).child(Constants.DATABASE_REF_PERSONAL_RECORD).setValue(score);
+                        }
+                        Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).limitToLast(Constants.RANKING_SIZE).addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).limitToLast(Constants.RANKING_SIZE).removeEventListener(this);
+                                if (snapshot.getChildrenCount() >= Constants.RANKING_SIZE) {
+                                    for (DataSnapshot snap : snapshot.getChildren()) {
+                                        Position position = snap.getValue(Position.class);
+                                        if (position != null && score > position.getScore()) {
+                                            Util.mDatabaseRankingRef.push().setValue(new Position(user.getUid(), score, usedFish, deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook));
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    Util.mDatabaseRankingRef.push().setValue(new Position(user.getUid(), score, usedFish, deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook));
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+        }
+    }
+
+    @Override
+    public boolean isLoggedIn() {
+        return isLoggedIn;
+    }
+
+    @Override
+    public void logout() {
+        FirebaseAuth.getInstance().signOut();
+        LoginManager.getInstance().logOut();
+        loginCallback.userLoggedOut();
+        Util.setUserUid(null);
+    }
+
+    @Override
+    public void login() {
+        callbackManager = CallbackManager.Factory.create();
+
+        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email", "public_profile"));
+
+        LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                handleFacebookAccessToken(loginResult.getAccessToken());
+            }
+
+            @Override
+            public void onCancel() {
+                // App code
+            }
+
+            @Override
+            public void onError(FacebookException exception) {
+                //Error
+            }
+        });
+    }
+
+    @Override
+    public void setLoginCallback(LoginCallback loginCallback) {
+        this.loginCallback = loginCallback;
+    }
+
+    private void handleFacebookAccessToken(AccessToken accessToken) {
+        AuthCredential credential = FacebookAuthProvider.getCredential(accessToken.getToken());
+        firebaseAuth.signInWithCredential(credential).addOnSuccessListener(authResult -> {
+            getUserDataFromFirebase(firebaseUser.getUid());
+        });
+    }
+
+    private void getUserDataFromFirebase(String uid) {
+        mUserDatabaseRef.child(uid).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                mUserDatabaseRef.child(uid).removeEventListener(this);
+                mUserDatabaseRef.removeEventListener(this);
+                user = dataSnapshot.getValue(User.class);
+                if (user == null || user.getUid() == null) {
+                    createUser(uid);
+                } else {
+                    updateUser(user);
+                }
+                loginCallback.userLoggedIn(user.getName(), user.getPersonalRecord());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void updateUser(User user) {
+        if (!user.getName().equals(firebaseUser.getDisplayName())) {
+            user.setName(firebaseUser.getDisplayName());
+        }
+        UserInfo userInfo = firebaseUser.getProviderData().get(0);
+        String currentPhotoUrl = null;
+        if (userInfo != null && userInfo.getPhotoUrl() != null) {
+            currentPhotoUrl = userInfo.getPhotoUrl().toString().concat("?type=large");
+        }
+        if (currentPhotoUrl != null && !user.getPhotoPath().equals(currentPhotoUrl)) {
+            user.setPhotoPath(currentPhotoUrl);
+            mUserDatabaseRef.child(firebaseUser.getUid()).setValue(user);
+        }
+    }
+
+    private void createUser(String uid) {
+        String userPhotoPath = null;
+        if (firebaseUser.getPhotoUrl() != null) {
+            userPhotoPath = firebaseUser.getPhotoUrl().toString().concat("?type=large");
+        }
+        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(instanceIdResult -> firebaseInstanceId = instanceIdResult.getToken());
+        User user = new User(uid, firebaseUser.getDisplayName(), firebaseInstanceId, userPhotoPath);
+        mUserDatabaseRef.child(firebaseUser.getUid()).setValue(user);
+    }
+
+    private void startFirebaseInstances() {
+        FirebaseApp.initializeApp(this);
+        FirebaseDatabase mFirebaseDatabase = FirebaseDatabase.getInstance();
+        DatabaseReference mDatabaseRef = mFirebaseDatabase.getReference();
+        mRankingDatabaseRef = mDatabaseRef.child(Constants.DATABASE_REF_RANKING);
+        mUserDatabaseRef = mDatabaseRef.child(Constants.DATABASE_REF_USER);
+        Util.setmDatabaseRankingRef(mRankingDatabaseRef);
+        Util.setmDatabaseUserRef(mUserDatabaseRef);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void callPrivacyPolicy() {
+        startActivity(new Intent(getApplicationContext(), PrivacyPolicyActivity.class));
+    }
+
+    @Override
+    public void callTerms() {
+        startActivity(new Intent(getApplicationContext(), TermsActivity.class));
     }
 }

@@ -2,5 +2,13 @@
 <resources>
 
     <string name="app_name">Seafish</string>
+    <string name="facebook_app_id">432633234840680</string>
+    <string name="fb_login_protocol_scheme">fb432633234840680</string>
+    <string name="error_login">Login Failed</string>
+    <string name="player">Player</string>
+    <string name="score">Score</string>
+    <string name="position">Position</string>
+    <string name="seafish_ranking">Seafish Ranking</string>
+
 
 </resources>
