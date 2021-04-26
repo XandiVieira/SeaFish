@@ -2,7 +2,13 @@ apply plugin: 'com.google.gms.google-services'
 android {
     signingConfigs {
         debug {
-            storeFile file('C:\\Users\\Admin\\Documents\\projetos\\Seafish\\seafishkeystore.jks')
+            storeFile file('C:\\Users\\Xandi\\Documents\\projects\\games\\Seafish\\seafishkeystore.jks')
+            storePassword '30061997'
+            keyAlias 'seafishkeystore'
+            keyPassword '30061997'
+        }
+        release {
+            storeFile file('C:\\Users\\Xandi\\Documents\\projects\\games\\Seafish\\seafishkeystore.jks')
             storePassword '30061997'
             keyAlias 'seafishkeystore'
             keyPassword '30061997'
