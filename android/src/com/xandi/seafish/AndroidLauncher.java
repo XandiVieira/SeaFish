@@ -77,6 +77,8 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     private DatabaseReference mUserDatabaseRef;
     private FirebaseUser firebaseUser;
     private String firebaseInstanceId;
+    private RelativeLayout layout;
+    private View gameView;
 
     @SuppressLint("HandlerLeak")
     protected Handler handler = new Handler() {
@@ -126,23 +128,19 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
         super.onCreate(savedInstanceState);
         FacebookSdk.sdkInitialize(getApplicationContext());
 
-        RelativeLayout layout = new RelativeLayout(this);
+        layout = new RelativeLayout(this);
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-        View gameView = initializeForView(new Seafish(this, this, this, this, this), config);
-
-        layout.addView(gameView);
+        gameView = initializeForView(new SeafishGame(this, this, this, this, this), config);
 
         startFirebaseInstances();
         firebaseAuthListener = firebaseAuth -> {
             firebaseUser = firebaseAuth.getCurrentUser();
             if (firebaseUser != null) {
-                Util.setUserUid(firebaseUser.getUid());
                 getUserDataFromFirebase(firebaseUser.getUid());
+            } else {
+                layout.addView(gameView);
             }
             isLoggedIn = firebaseUser != null;
-            if (isLoggedIn) {
-                loginCallback.userLoggedIn(firebaseUser.getDisplayName(), null);
-            }
         };
 
         firebaseAuth = FirebaseAuth.getInstance();
@@ -174,7 +172,6 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
         setupRewarded();
     }
 
-
     public void loadRewardedVideoAd() {
         AdRequest.Builder builder = new AdRequest.Builder();
         builder.addTestDevice("36EE88001735F5A5B7DB1D75A38FC19A");
@@ -191,24 +188,20 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
         if (is_video_ad_loaded) {
             return true;
         }
-        runOnUiThread(new Runnable() {
-            public void run() {
-                if (!adRewardedVideoView.isLoaded()) {
-                    loadRewardedVideoAd();
-                }
+        runOnUiThread(() -> {
+            if (!adRewardedVideoView.isLoaded()) {
+                loadRewardedVideoAd();
             }
         });
         return false;
     }
 
     public void showRewardedVideoAd() {
-        runOnUiThread(new Runnable() {
-            public void run() {
-                if (adRewardedVideoView.isLoaded()) {
-                    adRewardedVideoView.show();
-                } else {
-                    loadRewardedVideoAd();
-                }
+        runOnUiThread(() -> {
+            if (adRewardedVideoView.isLoaded()) {
+                adRewardedVideoView.show();
+            } else {
+                loadRewardedVideoAd();
             }
         });
     }
@@ -236,23 +229,20 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
     @Override
     public void showInterstitialAd(final Runnable then) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (then != null) {
-                    mInterstitialAd.setAdListener(new AdListener() {
-                        @Override
-                        public void onAdClosed() {
-                            Gdx.app.postRunnable(then);
-                            AdRequest.Builder builder = new AdRequest.Builder();
-                            builder.addTestDevice("3DF6979E4CCB56C2A91510C1A9BCC253");
-                            AdRequest ad = builder.build();
-                            mInterstitialAd.loadAd(ad);
-                        }
-                    });
-                }
-                mInterstitialAd.show();
+        runOnUiThread(() -> {
+            if (then != null) {
+                mInterstitialAd.setAdListener(new AdListener() {
+                    @Override
+                    public void onAdClosed() {
+                        Gdx.app.postRunnable(then);
+                        AdRequest.Builder builder = new AdRequest.Builder();
+                        builder.addTestDevice("3DF6979E4CCB56C2A91510C1A9BCC253");
+                        AdRequest ad = builder.build();
+                        mInterstitialAd.loadAd(ad);
+                    }
+                });
             }
+            mInterstitialAd.show();
         });
     }
 
@@ -307,7 +297,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
     @Override
     public void callRanking() {
-        startActivity(new Intent(getApplicationContext(), RankingActivity.class));
+        startActivity(new Intent(getApplicationContext(), RankingActivity.class).putExtra("firebaseId", firebaseUser != null ? firebaseUser.getUid() : null));
     }
 
     @Override
@@ -365,7 +355,6 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
         FirebaseAuth.getInstance().signOut();
         LoginManager.getInstance().logOut();
         loginCallback.userLoggedOut();
-        Util.setUserUid(null);
     }
 
     @Override
@@ -416,6 +405,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
                 } else {
                     updateUser(user);
                 }
+                layout.addView(gameView);
                 loginCallback.userLoggedIn(user.getName(), user.getPersonalRecord());
             }
 

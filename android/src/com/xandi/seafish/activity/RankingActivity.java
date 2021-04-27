@@ -26,12 +26,14 @@ public class RankingActivity extends Activity {
     private LinearLayout background;
     private RecyclerViewPositionAdapter recyclerViewPositionAdapter;
     private RecyclerView rankingView;
+    private String userUid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ranking);
 
+        userUid = getIntent().getExtras().getString("firebaseId");
         background = findViewById(R.id.background);
         rankingView = findViewById(R.id.ranking_view);
 
@@ -48,7 +50,7 @@ public class RankingActivity extends Activity {
                     }
                 }
                 Collections.reverse(ranking);
-                recyclerViewPositionAdapter = new RecyclerViewPositionAdapter(ranking, RankingActivity.this, Util.getUserUid());
+                recyclerViewPositionAdapter = new RecyclerViewPositionAdapter(ranking, RankingActivity.this, userUid);
                 LinearLayoutManager layoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false);
                 rankingView.setLayoutManager(layoutManager);
                 rankingView.setAdapter(recyclerViewPositionAdapter);

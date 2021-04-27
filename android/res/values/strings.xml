@@ -9,6 +9,7 @@
     <string name="score">Score</string>
     <string name="position">Position</string>
     <string name="seafish_ranking">Seafish Ranking</string>
+    <string name="seafishGame">Seafish</string>
 
 
 </resources>
