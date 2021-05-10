@@ -22,7 +22,7 @@ import com.xandi.seafish.interfaces.LoginCallback;
 import com.xandi.seafish.interfaces.PrivacyPolicyAndTerms;
 import com.xandi.seafish.interfaces.RankingInterface;
 import com.xandi.seafish.interfaces.VideoEventListener;
-import com.xandi.seafish.screens.GameOverScreen;
+import com.xandi.seafish.screens.GameScreen;
 import com.xandi.seafish.screens.LoginScreen;
 import com.xandi.seafish.screens.MenuScreen;
 
@@ -149,7 +149,7 @@ public class SeafishGame extends Game implements VideoEventListener, LoginCallba
     private Circle[] anzoisCircle, poluicoesCircle;
 
     //Numero do peixe
-    private int fishNumber;
+    public int fishNumber;
 
     //Rotação algas
     private boolean controlRotation;
@@ -318,10 +318,7 @@ public class SeafishGame extends Game implements VideoEventListener, LoginCallba
 
         controlSeaweedRotation(false);
         varySeaweed();
-
-        selectFish();
     }
-
 
     private void varySeaweed() {
         if (variacaoAlgaAux > 1) {
@@ -331,27 +328,6 @@ public class SeafishGame extends Game implements VideoEventListener, LoginCallba
             variacaoAlga = 0;
         } else {
             variacaoAlga = 1;
-        }
-    }
-
-    private void selectFish() {
-        if (Gdx.input.justTouched()) {
-            if (backSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
-                if (fishNumber == 0) {
-                    fishNumber = 6;
-                } else {
-                    fishNumber--;
-                }
-            }
-        }
-        if (Gdx.input.justTouched()) {
-            if (nextSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
-                if (fishNumber == 6) {
-                    fishNumber = 0;
-                } else {
-                    fishNumber++;
-                }
-            }
         }
     }
 
@@ -436,7 +412,7 @@ public class SeafishGame extends Game implements VideoEventListener, LoginCallba
             numMinhocas = 4;
             isRewardedYet = true;
         } else {
-            setScreen(new GameOverScreen(this));
+            setScreen(new GameScreen(this));
         }
     }
 
@@ -462,6 +438,8 @@ public class SeafishGame extends Game implements VideoEventListener, LoginCallba
     @Override
     public void resize(int width, int height) {
         super.resize(width, height);
+        this.width = width;
+        this.height = height;
     }
 
     @Override

@@ -179,6 +179,7 @@ public class MenuScreen extends BaseScreen {
             if (Gdx.input.justTouched()) {
                 if (playSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
                     if (fishNumber == 0 || fishNumber == 1 || fishNumber == 2 || (fishNumber == 3 && seafishGame.record >= 2000) || (fishNumber == 4 && seafishGame.record >= 4000) || (fishNumber == 5 && seafishGame.record >= 6000) || (fishNumber == 6 && seafishGame.record >= 8000)) {
+                        seafishGame.fishNumber = fishNumber;
                         seafishGame.setScreen(new GameScreen(seafishGame));
                     }
                 }
@@ -259,6 +260,8 @@ public class MenuScreen extends BaseScreen {
         batch.end();
 
         controlSeaweedRotation();
+        variacaoPeixeAux += (float) 0.05;
+        variacaoAlgaAux += (float) 0.009;
         varySeaweed();
         varyFish();
         selectFish();
