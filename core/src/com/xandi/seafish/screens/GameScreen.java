@@ -1,7 +1,6 @@
 package com.xandi.seafish.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
@@ -23,132 +22,121 @@ import java.util.Random;
 public class GameScreen extends BaseScreen implements VideoEventListener {
 
     private final SeafishGame seafishGame;
-    //Mantém dados salvos
-    private Preferences prefs;
 
     //batch
     private SpriteBatch batch;
 
     //Score
-    private int metragem, metersSpeed;
-    private BitmapFont metersLabel;
-    private static GlyphLayout metersLayout;
+    private int meters, metersSpeed;
     private float metersScore;
-    private Integer record;
-    private BitmapFont recordLabel;
-    private static GlyphLayout recordLayout;
+    private static GlyphLayout metersLayout, recordLayout;
+    private BitmapFont recordLabel, tapLabel, metersLabel;
 
-    private BitmapFont tap;
-
-    //Metros enquanto tubarão
+    //Meters while shark
     private float countSharkMeters;
 
-    //Formas para sobrepor botoes
-    private Sprite peixe, menuSprite, replaySprite, simSprite, naoSprite, pauseSprite, musicSprite;
-    private Sprite[] algas;
+    //shapes
+    private Sprite fishSprite, menuSprite, replaySprite, yesSprite, noSprite, pauseSprite, musicSprite;
+    private Sprite[] seaweeds;
 
-    //imagens
-    private Texture gameOverText, reload, menuBotao, simBotao, naoBotao, continueText, videoIcon, pause, music;
-    private Texture[] fundo, enfeite;
-    private Sprite[][] peixes;
-    private Sprite[] tubaroes;
-    private Sprite[] cardumes;
-    private Sprite[] poluicoes;
-    private Sprite[] anzois;
-    private Sprite[] minhocasScore;
-    private Sprite minhocaBonus;
-    private Sprite bolha;
-    private Sprite[] obstaculos;
+    //images
+    private Texture gameOverText, reload, menuButton, yesButton, noButton, continueButton, videoButton, pauseButton, musicButton;
+    private Texture[] background, ornaments;
+    private Sprite[][] fishes;
+    private Sprite[] sharks;
+    private Sprite[] shoals;
+    private Sprite[] pollution;
+    private Sprite[] hooks;
+    private Sprite[] wormScore;
+    private Sprite wormBonus;
+    private Sprite bubble;
+    private Sprite[] obstacles;
 
-    //posições
-    private float[] posicaoMovimentoObstaculoHorizontal;
-    private float minhocaBonusHorizontal;
-    private float bolhaHorizontal;
-    private int[] distanciaMinhoca, alturaMinhoca;
-    private float velocidade;
-    private float velocidadeQueda;
-    private float posicaoInicialVertical;
-    private float[] movimentoAnzolVertical;
-    private float movimentoEnfeiteHorizontal;
+    //positions
+    private float[] positionMovementHorizontalObstacle;
+    private float wormHorizontalBonus;
+    private float horizontalBubble;
+    private int[] wormDistance, wormHeight;
+    private float speed;
+    private float fallSpeed;
+    private float verticalInitialPosition;
+    private float[] verticalHookMovement;
+    private float horizontalOrnamentMovement;
 
-    private int numMinhocas;
-    private int contaPartidas = 1;
-    private int contaFundo;
-    private int contaMetrosSetor;
-    private int obstaculoAtualSetor;
-    private int toques;
-    private int toquesParaSoltar;
-    private int contaEnfeite;
+    private int wormNumber;
+    private int countBackground;
+    private int countSectorMeters;
+    private int currentSectorObstacle;
+    private int touches;
+    private int touchesToRelease;
+    private int countOrnament;
 
     //Controllers
-    private boolean iniciado; //Começar os movimentos depois do primeiro toque
-    private boolean setor;
-    private boolean colide;
+    private boolean started; //start movements after first touch
+    private boolean sector;
+    private boolean collides;
     private boolean gameOver;
-    private boolean colidiuObstaculo;
-    private boolean isColiding;
-    private boolean[] colidiuMinhoca;
-    private boolean pausa;
+    private boolean obstacleCollided;
+    private boolean isColliding;
+    private boolean[] wormCollided;
+    private boolean paused;
     private boolean isSlowShark;
     private boolean isShark;
-    private boolean mostraTelaSegueJogo;
+    private boolean displayKeepPlayingScreen;
     private boolean isRewarded;
     private boolean isRewardedYet;
-    private boolean mostraMinhocaBonus;
-    private boolean mostraBolha;
-    private boolean[] minhocaColidiu;
-    private boolean voltando;
-    private boolean vidaExtra;
-    private boolean[] anzolTocouTopo;
+    private boolean showBonusWorm;
+    private boolean showBubble;
+    private boolean[] wormCollidedAux;
+    private boolean goingBack;
+    private boolean extraLife;
+    private boolean[] hookTouchedTop;
 
-    //Sorteios
-    private Random obstaculoRandom;
-    private int[] numObstaculo;
-    private Random alturaObstaculoRandom;
-    private float[] alturaObstaculo;
-    private Random distanciaMinhocaRandom, alturaMinhocaRandom;
-    private Random sorteioMetrosPorSetor;
-    private int metrosPorSetor;
-    private Random numeroPoluicao;
+    //Sorts
+    private Random obstacleRandom;
+    private int[] obstacleNumber;
+    private Random heightObstacleRandom;
+    private float[] obstacleHeight;
+    private Random wormDistanceRandom, wormHeightRandom;
+    private Random sortMetersBySector;
+    private int metersBySector;
+    private Random pollutionNumber;
 
-    //Formas para colisões
-    private Circle peixeCircle, bolhaCircle;
-    private Rectangle minhocaBonusRect;
-    private Rectangle[] minhocasRect, piranhasVerticalRect, piranhasHorizontalRect, tubaroesRect;
-    private Circle[] anzoisCircle, poluicoesCircle;
+    //Shapes for collisions
+    private Circle fishCircle, bubbleCircle;
+    private Rectangle wormBonusRect;
+    private Rectangle[] wormsRect, piranhasVerticalRect, piranhasHorizontalRect, sharksRect;
+    private Circle[] hooksCircle, pollutionCircle;
 
-    //Numero do peixe
-    private int fishNumber;
+    //Seaweed rotation
+    private boolean controlSeaweedRotation;
 
-    //Rotação algas
-    private boolean controlRotation;
-
-    //Sons
+    //Sounds
     private Sound eatSound, hitSound, gameOverSound, bubbleSound, blowBubbleSound;
     private Music backgroundMusic;
 
-    //Variações
-    private int variacaoPeixe;
-    private float variacaoPeixeAux;
-    private float variacaoTubarao;
-    private int variacaoAlga;
-    private float variacaoCardume;
+    //Variations
+    private int fishVariation;
+    private float fishVariationAux;
+    private float sharkVariation;
+    private int seaweedVariation;
+    private float shoalVariation;
 
-    //Constantes
-    private float AUMENTA_VELOCIDADE;
-    private float ALTURA_SALTO;
-    private float POSICAO_HORIZONTAL_PEIXE;
-    private float ALTURA_TOPO;
-    private float VELOCIDADE_QUEDA;
-    private float VELOCIDADE_OBSTACULO;
+    //Constants
+    private float INCREASE_SPEED;
+    private float JUMP_HEIGHT;
+    private float FISH_HORIZONTAL_POSITION;
+    private float TOP_HEITHG;
+    private float FALL_SPEED;
+    private float OBSTACLE_SPEED;
     private float TAP_X;
     private float TAP_Y;
-    private float VELOCIDADE_INICIAL;
-    private int VELOCIDADE_METROS_INICIAL;
-    private int TOQUES_ANZOL1;
-    private int TOQUES_ANZOL2;
-    private int TOQUES_ANZOL3;
-    private int TOQUES_ANZOL4;
+    private float INITIAL_SPEED;
+    private int INITIAL_METERS_SPEED;
+    private int TOUCHES_HOOK1;
+    private int TOUCHES_HOOK2;
+    private int TOUCHES_HOOK3;
+    private int TOUCHES_HOOK4;
 
     private int caughtWarms;
     private int caughtSpecialWarms;
@@ -156,7 +144,6 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     private int caughtByHook;
     private int turnedShark;
     private String deathTackle;
-
 
     public GameScreen(SeafishGame seafishGame) {
         super(seafishGame);
@@ -167,134 +154,126 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     public void show() {
 
         System.gc();
-        //Dimensões padrão
 
-        fundo = new Texture[9];
-        enfeite = new Texture[7];
+        background = new Texture[9];
+        ornaments = new Texture[7];
 
-        //Inicializa os Sprites
-        peixes = new Sprite[7][5];
-        tubaroes = new Sprite[2];
-        cardumes = new Sprite[3];
-        poluicoes = new Sprite[5];
-        anzois = new Sprite[4];
-        minhocasScore = new Sprite[10];
-        minhocaBonus = new Sprite();
-        bolha = new Sprite(new Texture("images/elements/bolha.png"));
+        //Init Sprites
+        fishes = new Sprite[7][5];
+        sharks = new Sprite[2];
+        shoals = new Sprite[3];
+        pollution = new Sprite[5];
+        hooks = new Sprite[4];
+        wormScore = new Sprite[10];
+        wormBonus = new Sprite();
+        bubble = new Sprite(new Texture("images/elements/bolha.png"));
 
-        //Distancia da minhoca do obstáculo
-        distanciaMinhoca = new int[4];
-        alturaMinhoca = new int[4];
+        //Distance between worms and obstacles
+        wormDistance = new int[4];
+        wormHeight = new int[4];
 
-        //Sair do anzol
-        toques = 0;
-        toquesParaSoltar = 0;
+        //release hook
+        touches = 0;
+        touchesToRelease = 0;
 
-        contaEnfeite = 0;
+        countOrnament = 0;
 
-        //Velocidade de queda do peixe começa em 0
-        velocidadeQueda = 0;
+        fallSpeed = 0;
 
-        colide = true;
+        collides = true;
         gameOver = false;
-        iniciado = false;
-        colidiuObstaculo = false;
-        isColiding = false;
-        pausa = false;
+        started = false;
+        obstacleCollided = false;
+        isColliding = false;
+        paused = false;
         isSlowShark = false;
         isShark = false;
-        voltando = false;
-        mostraTelaSegueJogo = false;
+        goingBack = false;
+        displayKeepPlayingScreen = false;
         isRewarded = false;
         isRewardedYet = false;
-        setor = false;
-        mostraMinhocaBonus = false;
-        mostraBolha = false;
-        vidaExtra = false;
+        sector = false;
+        showBonusWorm = false;
+        showBubble = false;
+        extraLife = false;
 
-        anzolTocouTopo = new boolean[4];
+        hookTouchedTop = new boolean[4];
 
-        Arrays.fill(anzolTocouTopo, Boolean.FALSE);
+        Arrays.fill(hookTouchedTop, Boolean.FALSE);
 
-        numMinhocas = 1;
-        contaFundo = 0;
-        contaMetrosSetor = 0;
-        obstaculoAtualSetor = 3;
+        wormNumber = 1;
+        countBackground = 0;
+        countSectorMeters = 0;
+        currentSectorObstacle = 3;
 
-        //Inicializa formas
-        minhocaColidiu = new boolean[4];
-        colidiuMinhoca = new boolean[4];
-        minhocasRect = new Rectangle[4];
+        //Init shapes
+        wormCollidedAux = new boolean[4];
+        wormCollided = new boolean[4];
+        wormsRect = new Rectangle[4];
         piranhasVerticalRect = new Rectangle[4];
         piranhasHorizontalRect = new Rectangle[4];
-        tubaroesRect = new Rectangle[4];
-        anzoisCircle = new Circle[4];
-        poluicoesCircle = new Circle[5];
+        sharksRect = new Rectangle[4];
+        hooksCircle = new Circle[4];
+        pollutionCircle = new Circle[5];
 
-        //Numero do peixe
-        fishNumber = 0;
+        //Seaweed rotation
+        controlSeaweedRotation = false;
 
-        //Rotação algas
-        controlRotation = false;
-
-        //Variações dos elementos
-        variacaoPeixe = 0;
-        variacaoPeixeAux = 0;
-        variacaoTubarao = 0;
-        variacaoAlga = 0;
-        variacaoCardume = 0;
+        //Elements Variations
+        fishVariation = 0;
+        fishVariationAux = 0;
+        sharkVariation = 0;
+        seaweedVariation = 0;
+        shoalVariation = 0;
 
         countSharkMeters = 0;
-        alturaObstaculo = new float[4];
-
-        prefs = Gdx.app.getPreferences("score");
-        record = prefs.getInteger("score");
+        obstacleHeight = new float[4];
 
         batch = new SpriteBatch();
 
         setTextures();
 
-        peixeCircle = new Circle();
-        minhocaBonusRect = new Rectangle();
-        bolhaCircle = new Circle();
+        fishCircle = new Circle();
+        wormBonusRect = new Rectangle();
+        bubbleCircle = new Circle();
 
-        metragem = 0;
-        alturaObstaculoRandom = new Random();
-        obstaculoRandom = new Random();
+        meters = 0;
+        heightObstacleRandom = new Random();
+        obstacleRandom = new Random();
 
-        obstaculos = new Sprite[11];
+        obstacles = new Sprite[11];
 
-        velocidade = 10 * seafishGame.adjustWidth;
-        for (int i = 0; i < alturaObstaculo.length; i++) {
+        speed = 10 * seafishGame.adjustWidth;
+        for (int i = 0; i < obstacleHeight.length; i++) {
             if (i == 0) {
-                alturaObstaculo[i] = i;
+                obstacleHeight[i] = i;
             } else {
-                alturaObstaculo[i] = seafishGame.height / i;
+                obstacleHeight[i] = seafishGame.height / i;
             }
         }
 
-        posicaoInicialVertical = seafishGame.height / 2;
-        movimentoAnzolVertical = new float[4];
+        verticalInitialPosition = seafishGame.height / 2;
+        verticalHookMovement = new float[4];
 
-        obstaculos[0] = cardumes[0];
-        obstaculos[1] = tubaroes[0];
-        obstaculos[2] = poluicoes[0];
-        obstaculos[3] = poluicoes[1];
-        obstaculos[4] = poluicoes[2];
-        obstaculos[5] = poluicoes[3];
-        obstaculos[6] = poluicoes[4];
-        obstaculos[7] = anzois[0];
-        obstaculos[8] = anzois[1];
-        obstaculos[9] = anzois[2];
-        obstaculos[10] = anzois[3];
+        obstacles[0] = shoals[0];
+        obstacles[1] = sharks[0];
+        obstacles[2] = pollution[0];
+        obstacles[3] = pollution[1];
+        obstacles[4] = pollution[2];
+        obstacles[5] = pollution[3];
+        obstacles[6] = pollution[4];
+        obstacles[7] = hooks[0];
+        obstacles[8] = hooks[1];
+        obstacles[9] = hooks[2];
+        obstacles[10] = hooks[3];
 
-        posicaoMovimentoObstaculoHorizontal = new float[4];
-        movimentoEnfeiteHorizontal = (seafishGame.width - seafishGame.differenceBetweenWidth) - enfeite[contaEnfeite].getWidth();
+        positionMovementHorizontalObstacle = new float[4];
+        horizontalOrnamentMovement = (seafishGame.width - seafishGame.differenceBetweenWidth) - ornaments[countOrnament].getWidth();
 
-        numObstaculo = new int[4];
-        if (!pausa) {
-            for (int i = 0; i < posicaoMovimentoObstaculoHorizontal.length; i++) {
-                posicaoMovimentoObstaculoHorizontal[i] = -obstaculos[numObstaculo[i]].getWidth() * seafishGame.adjustWidth;
+        obstacleNumber = new int[4];
+        if (!paused) {
+            for (int i = 0; i < positionMovementHorizontalObstacle.length; i++) {
+                positionMovementHorizontalObstacle[i] = -obstacles[obstacleNumber[i]].getWidth() * seafishGame.adjustWidth;
             }
         }
 
@@ -309,53 +288,53 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
         recordLabel.getData().setScale(6 * seafishGame.adjustWidth);
         if (recordLayout == null) {
             recordLayout = new GlyphLayout();
-            recordLayout.setText(recordLabel, "Record: " + record + "m");
+            recordLayout.setText(recordLabel, "Record: " + seafishGame.record + "m");
         }
 
-        tap = new BitmapFont();
-        tap.setColor(Color.YELLOW);
-        tap.getData().setScale(5 * seafishGame.adjustWidth);
+        tapLabel = new BitmapFont();
+        tapLabel.setColor(Color.YELLOW);
+        tapLabel.getData().setScale(5 * seafishGame.adjustWidth);
         metersScore = 0;
         metersSpeed = 100;
 
-        distanciaMinhocaRandom = new Random();
-        alturaMinhocaRandom = new Random();
-        sorteioMetrosPorSetor = new Random();
-        numeroPoluicao = new Random();
+        wormDistanceRandom = new Random();
+        wormHeightRandom = new Random();
+        sortMetersBySector = new Random();
+        pollutionNumber = new Random();
 
         for (int i = 0; i < piranhasHorizontalRect.length; i++) {
             piranhasVerticalRect[i] = new Rectangle();
             piranhasHorizontalRect[i] = new Rectangle();
-            tubaroesRect[i] = new Rectangle();
-            minhocasRect[i] = new Rectangle();
-            anzoisCircle[i] = new Circle();
+            sharksRect[i] = new Rectangle();
+            wormsRect[i] = new Rectangle();
+            hooksCircle[i] = new Circle();
         }
 
-        for (int i = 0; i < poluicoesCircle.length; i++) {
-            poluicoesCircle[i] = new Circle();
+        for (int i = 0; i < pollutionCircle.length; i++) {
+            pollutionCircle[i] = new Circle();
         }
 
-        for (int i = 0; i < minhocaColidiu.length; i++) {
-            minhocaColidiu[i] = false;
-            colidiuMinhoca[i] = false;
+        for (int i = 0; i < wormCollidedAux.length; i++) {
+            wormCollidedAux[i] = false;
+            wormCollided[i] = false;
         }
 
         setSounds();
 
-        AUMENTA_VELOCIDADE = (float) 0.001 * seafishGame.adjustWidth;
-        ALTURA_SALTO = -12 * (seafishGame.adjustWidth);
-        POSICAO_HORIZONTAL_PEIXE = seafishGame.width / 12;
-        ALTURA_TOPO = seafishGame.height - peixe.getHeight() * seafishGame.adjustHeight;
-        VELOCIDADE_QUEDA = (float) (0.7 * (seafishGame.adjustWidth));
-        VELOCIDADE_OBSTACULO = 12 * seafishGame.adjustWidth;
-        TAP_X = ((seafishGame.width - seafishGame.differenceBetweenWidth) / 8) + peixe.getWidth();
+        INCREASE_SPEED = (float) 0.001 * seafishGame.adjustWidth;
+        JUMP_HEIGHT = -12 * (seafishGame.adjustWidth);
+        FISH_HORIZONTAL_POSITION = seafishGame.width / 12;
+        TOP_HEITHG = seafishGame.height - fishSprite.getHeight() * seafishGame.adjustHeight;
+        FALL_SPEED = (float) (0.7 * (seafishGame.adjustWidth));
+        OBSTACLE_SPEED = 12 * seafishGame.adjustWidth;
+        TAP_X = ((seafishGame.width - seafishGame.differenceBetweenWidth) / 8) + fishSprite.getWidth();
         TAP_Y = seafishGame.height - 120;
-        VELOCIDADE_INICIAL = velocidade;
-        VELOCIDADE_METROS_INICIAL = (int) (100 * seafishGame.adjustWidth);
-        TOQUES_ANZOL1 = 10;
-        TOQUES_ANZOL2 = 15;
-        TOQUES_ANZOL3 = 20;
-        TOQUES_ANZOL4 = 30;
+        INITIAL_SPEED = speed;
+        INITIAL_METERS_SPEED = (int) (100 * seafishGame.adjustWidth);
+        TOUCHES_HOOK1 = 10;
+        TOUCHES_HOOK2 = 15;
+        TOUCHES_HOOK3 = 20;
+        TOUCHES_HOOK4 = 30;
 
         setButtons();
         setSeaweed();
@@ -372,54 +351,54 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     @Override
     public void render(float delta) {
 
-        //Limpa tela
+        //clean screen
         Gdx.gl.glClearColor(0, 0, 0, 0);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        //Varia o peixe
-        variacaoPeixeAux += (float) 0.05;
+        //Vary fish
+        fishVariationAux += (float) 0.05;
         varyFish();
         gameState();
     }
 
     private void gameState() {
         seafishGame.handler.showBannerAd(false);
-        //Impede que peixe vá pra baixo do chão (bug)
-        if (posicaoInicialVertical < 10) {
-            posicaoInicialVertical = seafishGame.height / 2;
+        //Prevent fish from passing the ground
+        if (verticalInitialPosition < 10) {
+            verticalInitialPosition = seafishGame.height / 2;
         }
 
         if (!gameOver) {
-            variacaoTubarao += 0.01;
-            variacaoCardume += 0.05;
+            sharkVariation += 0.01;
+            shoalVariation += 0.05;
 
-            if (metersScore == contaMetrosSetor + 500 && !setor) {
-                setor = true;
-                metrosPorSetor = sorteioMetrosPorSetor.nextInt(250) + 150;
-                contaMetrosSetor = (int) metersScore;
+            if (metersScore == countSectorMeters + 500 && !sector) {
+                sector = true;
+                metersBySector = sortMetersBySector.nextInt(250) + 150;
+                countSectorMeters = (int) metersScore;
             }
-            if (setor) {
-                if (metersScore >= contaMetrosSetor + metrosPorSetor) {
-                    setor = false;
-                    if (obstaculoAtualSetor <= 2) {
-                        obstaculoAtualSetor++;
+            if (sector) {
+                if (metersScore >= countSectorMeters + metersBySector) {
+                    sector = false;
+                    if (currentSectorObstacle <= 2) {
+                        currentSectorObstacle++;
                     } else {
-                        obstaculoAtualSetor = 0;
+                        currentSectorObstacle = 0;
                     }
                 }
             }
 
-            if (movimentoEnfeiteHorizontal < -enfeite[contaEnfeite].getWidth()) {
-                movimentoEnfeiteHorizontal = seafishGame.width + enfeite[contaEnfeite].getWidth();
+            if (horizontalOrnamentMovement < -ornaments[countOrnament].getWidth()) {
+                horizontalOrnamentMovement = seafishGame.width + ornaments[countOrnament].getWidth();
             }
 
             VaryShoal();
             varyShark();
 
-            //controla a velocidade do jogo
-            if (iniciado) {
-                if (velocidade < 35) {
-                    velocidade += AUMENTA_VELOCIDADE;
+            //game speed
+            if (started) {
+                if (speed < 35) {
+                    speed += INCREASE_SPEED;
                 }
             }
 
@@ -427,164 +406,163 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
 
             sortNextTackle();
 
-            //faz o peixe subir a cada toque na tela
-            if (Gdx.input.justTouched() && !pausa && !musicSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
+            //fish goes up on each touch
+            if (Gdx.input.justTouched() && !paused && !musicSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
                 bubbleSound.play(0.1f);
-                iniciado = true;
-                velocidadeQueda = ALTURA_SALTO;
+                started = true;
+                fallSpeed = JUMP_HEIGHT;
                 batch.begin();
-                batch.draw(peixes[fishNumber][variacaoPeixe], POSICAO_HORIZONTAL_PEIXE, posicaoInicialVertical, peixes[fishNumber][variacaoPeixe].getWidth() * seafishGame.adjustWidth, peixes[fishNumber][variacaoPeixe].getHeight() * seafishGame.adjustHeight);
+                batch.draw(fishes[seafishGame.fishNumber][fishVariation], FISH_HORIZONTAL_POSITION, verticalInitialPosition, fishes[seafishGame.fishNumber][fishVariation].getWidth() * seafishGame.adjustWidth, fishes[seafishGame.fishNumber][fishVariation].getHeight() * seafishGame.adjustHeight);
                 batch.end();
             }
 
             if (Gdx.input.justTouched()) {
                 if (pauseSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
-                    iniciado = false;
+                    started = false;
                 }
                 if (musicSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
                     if (backgroundMusic.isPlaying()) {
                         backgroundMusic.pause();
-                        music = new Texture("images/buttons/musicoff.png");
+                        musicButton = new Texture("images/buttons/musicoff.png");
                     } else {
                         backgroundMusic.play();
-                        music = new Texture("images/buttons/music.png");
+                        musicButton = new Texture("images/buttons/music.png");
                     }
                 }
             }
 
-            peixeCircle.set(POSICAO_HORIZONTAL_PEIXE + peixes[fishNumber][0].getWidth() * seafishGame.adjustWidth / 2, (posicaoInicialVertical + peixes[fishNumber][0].getHeight() * seafishGame.adjustHeight / 2), ((peixes[fishNumber][0].getHeight() * seafishGame.adjustWidth / 2) - peixes[fishNumber][0].getHeight() * seafishGame.adjustHeight / 12));
+            fishCircle.set(FISH_HORIZONTAL_POSITION + fishes[seafishGame.fishNumber][0].getWidth() * seafishGame.adjustWidth / 2, (verticalInitialPosition + fishes[seafishGame.fishNumber][0].getHeight() * seafishGame.adjustHeight / 2), ((fishes[seafishGame.fishNumber][0].getHeight() * seafishGame.adjustWidth / 2) - fishes[seafishGame.fishNumber][0].getHeight() * seafishGame.adjustHeight / 12));
 
-            //impede que o peixe passe do topo
-            if (posicaoInicialVertical >= ALTURA_TOPO) {
-                velocidadeQueda = (float) 0.1;
+            //Prevent fish from passing the top
+            if (verticalInitialPosition >= TOP_HEITHG) {
+                fallSpeed = (float) 0.1;
             }
 
-            //aumenta a velocidade de queda do peixe
-            if (iniciado && !pausa) {
-                velocidadeQueda += VELOCIDADE_QUEDA;
-                //Movimenta o obstáculo
-                for (int i = 0; i < posicaoMovimentoObstaculoHorizontal.length; i++) {
-                    posicaoMovimentoObstaculoHorizontal[i] -= velocidade;
+            //Increase fall speed
+            if (started && !paused) {
+                fallSpeed += FALL_SPEED;
+                //Move obstacle
+                for (int i = 0; i < positionMovementHorizontalObstacle.length; i++) {
+                    positionMovementHorizontalObstacle[i] -= speed;
                 }
-                movimentoEnfeiteHorizontal -= velocidade;
-                minhocaBonusHorizontal -= velocidade;
-                bolhaHorizontal -= velocidade;
-                metragem++;
-                if (metragem >= metersSpeed) {
+                horizontalOrnamentMovement -= speed;
+                wormHorizontalBonus -= speed;
+                horizontalBubble -= speed;
+                meters++;
+                if (meters >= metersSpeed) {
                     metersScore++;
                     if (metersSpeed > 10) {
                         metersSpeed -= 0.5;
                     }
-                    metragem = 0;
+                    meters = 0;
                 }
 
-                //Faz o peixe cair (impede que passe do chão)
-                if (posicaoInicialVertical > seafishGame.height / 13 || velocidadeQueda < 0) {
-                    posicaoInicialVertical = posicaoInicialVertical - velocidadeQueda;
+                //Make the fish fall
+                if (verticalInitialPosition > seafishGame.height / 13 || fallSpeed < 0) {
+                    verticalInitialPosition = verticalInitialPosition - fallSpeed;
                 }
 
-                if (colide) {
+                if (collides) {
                     testCollision();
                 } else {
                     increaseGameSpeed();
                 }
             }
-            if (colide) {
+            if (collides) {
                 testHook();
             }
         }
 
         batch.begin();
-        batch.draw(fundo[contaFundo], 0, 0, seafishGame.width, seafishGame.height);
-        batch.draw(enfeite[contaEnfeite], movimentoEnfeiteHorizontal, 7, enfeite[contaEnfeite].getWidth() * seafishGame.adjustWidth, enfeite[contaEnfeite].getHeight() * seafishGame.adjustHeight);
-        algas[variacaoAlga].draw(batch);
-        algas[2].draw(batch);
-        batch.draw(peixes[fishNumber][variacaoPeixe], POSICAO_HORIZONTAL_PEIXE, posicaoInicialVertical, peixes[fishNumber][variacaoPeixe].getWidth() * seafishGame.adjustWidth, peixes[fishNumber][variacaoPeixe].getHeight() * seafishGame.adjustHeight);
-        batch.draw(pause, (pause.getWidth() * seafishGame.adjustWidth), (seafishGame.height - ((float) pause.getHeight() * seafishGame.adjustHeight * 1.5f)), pause.getWidth() * seafishGame.adjustWidth, pause.getHeight() * seafishGame.adjustHeight);
-        batch.draw(music, (pause.getWidth() * seafishGame.adjustWidth * 3f), (seafishGame.height - ((float) pause.getHeight() * seafishGame.adjustHeight * 1.5f)), music.getWidth() * seafishGame.adjustWidth, music.getHeight() * seafishGame.adjustHeight);
+        batch.draw(background[countBackground], 0, 0, seafishGame.width, seafishGame.height);
+        batch.draw(ornaments[countOrnament], horizontalOrnamentMovement, 7, ornaments[countOrnament].getWidth() * seafishGame.adjustWidth, ornaments[countOrnament].getHeight() * seafishGame.adjustHeight);
+        seaweeds[seaweedVariation].draw(batch);
+        seaweeds[2].draw(batch);
+        batch.draw(fishes[seafishGame.fishNumber][fishVariation], FISH_HORIZONTAL_POSITION, verticalInitialPosition, fishes[seafishGame.fishNumber][fishVariation].getWidth() * seafishGame.adjustWidth, fishes[seafishGame.fishNumber][fishVariation].getHeight() * seafishGame.adjustHeight);
+        batch.draw(pauseButton, (pauseButton.getWidth() * seafishGame.adjustWidth), (seafishGame.height - ((float) pauseButton.getHeight() * seafishGame.adjustHeight * 1.5f)), pauseButton.getWidth() * seafishGame.adjustWidth, pauseButton.getHeight() * seafishGame.adjustHeight);
+        batch.draw(musicButton, (pauseButton.getWidth() * seafishGame.adjustWidth * 3f), (seafishGame.height - ((float) pauseButton.getHeight() * seafishGame.adjustHeight * 1.5f)), musicButton.getWidth() * seafishGame.adjustWidth, musicButton.getHeight() * seafishGame.adjustHeight);
 
-        if (!voltando) {
+        if (!goingBack) {
             upAndDownHook();
         }
-        for (int i = 0; i < numObstaculo.length; i++) {
-            if (numObstaculo[i] > 6) {
-                batch.draw(obstaculos[numObstaculo[i]], posicaoMovimentoObstaculoHorizontal[i], movimentoAnzolVertical[i], obstaculos[numObstaculo[i]].getWidth() * seafishGame.adjustWidth, obstaculos[numObstaculo[i]].getHeight() * seafishGame.adjustHeight);
+        for (int i = 0; i < obstacleNumber.length; i++) {
+            if (obstacleNumber[i] > 6) {
+                batch.draw(obstacles[obstacleNumber[i]], positionMovementHorizontalObstacle[i], verticalHookMovement[i], obstacles[obstacleNumber[i]].getWidth() * seafishGame.adjustWidth, obstacles[obstacleNumber[i]].getHeight() * seafishGame.adjustHeight);
             } else {
-                batch.draw(obstaculos[numObstaculo[i]], posicaoMovimentoObstaculoHorizontal[i], alturaObstaculo[i], obstaculos[numObstaculo[i]].getWidth() * seafishGame.adjustWidth, obstaculos[numObstaculo[i]].getHeight() * seafishGame.adjustHeight);
+                batch.draw(obstacles[obstacleNumber[i]], positionMovementHorizontalObstacle[i], obstacleHeight[i], obstacles[obstacleNumber[i]].getWidth() * seafishGame.adjustWidth, obstacles[obstacleNumber[i]].getHeight() * seafishGame.adjustHeight);
             }
         }
 
-        //Set retangulos colisoes minhocas
-        for (int i = 0; i < minhocasRect.length; i++) {
-            if (!isSlowShark && alturaMinhoca[i] > seafishGame.height / 13) {
-                minhocasRect[i].set(posicaoMovimentoObstaculoHorizontal[i] - distanciaMinhoca[i], alturaMinhoca[i], minhocasScore[i].getWidth() * seafishGame.adjustWidth, minhocasScore[i].getHeight() * seafishGame.adjustHeight);
+        for (int i = 0; i < wormsRect.length; i++) {
+            if (!isSlowShark && wormHeight[i] > seafishGame.height / 13) {
+                wormsRect[i].set(positionMovementHorizontalObstacle[i] - wormDistance[i], wormHeight[i], wormScore[i].getWidth() * seafishGame.adjustWidth, wormScore[i].getHeight() * seafishGame.adjustHeight);
 
-                if (!minhocaColidiu[i] && !pausa) {
-                    batch.draw(minhocasScore[i], posicaoMovimentoObstaculoHorizontal[i] - distanciaMinhoca[i], alturaMinhoca[i], minhocasScore[i].getWidth() * seafishGame.adjustWidth, minhocasScore[i].getHeight() * seafishGame.adjustHeight);
+                if (!wormCollidedAux[i] && !paused) {
+                    batch.draw(wormScore[i], positionMovementHorizontalObstacle[i] - wormDistance[i], wormHeight[i], wormScore[i].getWidth() * seafishGame.adjustWidth, wormScore[i].getHeight() * seafishGame.adjustHeight);
                 }
             }
         }
 
-        if (metersScore >= 2500 && metersScore % 2500 == 0 && !vidaExtra) {
-            mostraBolha = true;
-            bolhaHorizontal = seafishGame.width;
+        if (metersScore >= 2500 && metersScore % 2500 == 0 && !extraLife) {
+            showBubble = true;
+            horizontalBubble = seafishGame.width;
         }
-        if (bolhaHorizontal < 0) {
-            mostraBolha = false;
+        if (horizontalBubble < 0) {
+            showBubble = false;
         }
-        if (mostraBolha) {
-            bolhaCircle.set(bolhaHorizontal, seafishGame.height / 2, (float) (bolha.getTexture().getWidth() / 2) * seafishGame.adjustWidth);
-            batch.draw(bolha, bolhaHorizontal, seafishGame.height / 2, bolha.getWidth() * seafishGame.adjustWidth, bolha.getHeight() * seafishGame.adjustHeight);
+        if (showBubble) {
+            bubbleCircle.set(horizontalBubble, seafishGame.height / 2, (float) (bubble.getTexture().getWidth() / 2) * seafishGame.adjustWidth);
+            batch.draw(bubble, horizontalBubble, seafishGame.height / 2, bubble.getWidth() * seafishGame.adjustWidth, bubble.getHeight() * seafishGame.adjustHeight);
         }
-        if (Intersector.overlaps(peixeCircle, bolhaCircle) && mostraBolha) {
+        if (Intersector.overlaps(fishCircle, bubbleCircle) && showBubble) {
             blowBubbleSound.play();
-            mostraBolha = false;
-            vidaExtra = true;
+            showBubble = false;
+            extraLife = true;
             caughtBubbles++;
         }
         if (metersScore % 650 == 0 && metersScore != 0) {
-            mostraMinhocaBonus = true;
-            minhocaBonusHorizontal = seafishGame.width;
+            showBonusWorm = true;
+            wormHorizontalBonus = seafishGame.width;
         }
-        if (minhocaBonusHorizontal < minhocaBonus.getWidth() * seafishGame.adjustWidth) {
-            mostraMinhocaBonus = false;
+        if (wormHorizontalBonus < wormBonus.getWidth() * seafishGame.adjustWidth) {
+            showBonusWorm = false;
         }
-        if (mostraMinhocaBonus && !isShark && !isSlowShark) {
-            minhocaBonusRect.set(minhocaBonusHorizontal, seafishGame.height / 2, minhocaBonus.getWidth() * seafishGame.adjustWidth, minhocaBonus.getHeight() * seafishGame.adjustHeight);
-            batch.draw(minhocaBonus, minhocaBonusHorizontal, seafishGame.height / 2, minhocaBonus.getWidth() * seafishGame.adjustWidth, minhocaBonus.getHeight() * seafishGame.adjustHeight);
+        if (showBonusWorm && !isShark && !isSlowShark) {
+            wormBonusRect.set(wormHorizontalBonus, seafishGame.height / 2, wormBonus.getWidth() * seafishGame.adjustWidth, wormBonus.getHeight() * seafishGame.adjustHeight);
+            batch.draw(wormBonus, wormHorizontalBonus, seafishGame.height / 2, wormBonus.getWidth() * seafishGame.adjustWidth, wormBonus.getHeight() * seafishGame.adjustHeight);
         }
 
-        if (Intersector.overlaps(peixeCircle, minhocaBonusRect) && mostraMinhocaBonus) {
-            mostraMinhocaBonus = false;
-            colide = false;
+        if (Intersector.overlaps(fishCircle, wormBonusRect) && showBonusWorm) {
+            showBonusWorm = false;
+            collides = false;
             turnedShark++;
             caughtSpecialWarms++;
         }
 
-        if (Intersector.overlaps(peixeCircle, minhocasRect[0])) {
+        if (Intersector.overlaps(fishCircle, wormsRect[0])) {
             countWarm(0);
-            minhocaColidiu[0] = true;
-        } else if (Intersector.overlaps(peixeCircle, minhocasRect[1])) {
+            wormCollidedAux[0] = true;
+        } else if (Intersector.overlaps(fishCircle, wormsRect[1])) {
             countWarm(1);
-            minhocaColidiu[1] = true;
-        } else if (Intersector.overlaps(peixeCircle, minhocasRect[2])) {
+            wormCollidedAux[1] = true;
+        } else if (Intersector.overlaps(fishCircle, wormsRect[2])) {
             countWarm(2);
-            minhocaColidiu[2] = true;
-        } else if (Intersector.overlaps(peixeCircle, minhocasRect[3])) {
+            wormCollidedAux[2] = true;
+        } else if (Intersector.overlaps(fishCircle, wormsRect[3])) {
             countWarm(3);
-            minhocaColidiu[3] = true;
+            wormCollidedAux[3] = true;
         } else {
-            colidiuMinhoca[0] = false;
-            colidiuMinhoca[1] = false;
-            colidiuMinhoca[2] = false;
-            colidiuMinhoca[3] = false;
+            wormCollided[0] = false;
+            wormCollided[1] = false;
+            wormCollided[2] = false;
+            wormCollided[3] = false;
         }
 
-        for (int i = 1; i <= numMinhocas; i++) {
-            batch.draw(minhocasScore[i - 1], (float) ((seafishGame.width - seafishGame.differenceBetweenWidth) - (minhocasScore[i - 1].getWidth() * seafishGame.adjustWidth * i * 1.15)), (seafishGame.height - recordLayout.height - (minhocasScore[i - 1].getHeight() * seafishGame.adjustHeight * 1.5f)), minhocasScore[i - 1].getWidth() * seafishGame.adjustWidth, minhocasScore[i - 1].getHeight() * seafishGame.adjustHeight);
+        for (int i = 1; i <= wormNumber; i++) {
+            batch.draw(wormScore[i - 1], (float) ((seafishGame.width - seafishGame.differenceBetweenWidth) - (wormScore[i - 1].getWidth() * seafishGame.adjustWidth * i * 1.15)), (seafishGame.height - recordLayout.height - (wormScore[i - 1].getHeight() * seafishGame.adjustHeight * 1.5f)), wormScore[i - 1].getWidth() * seafishGame.adjustWidth, wormScore[i - 1].getHeight() * seafishGame.adjustHeight);
         }
-        if (vidaExtra) {
-            batch.draw(bolha, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2), (float) (seafishGame.height - minhocaBonus.getHeight() * seafishGame.adjustHeight * 1.3), bolha.getTexture().getWidth() * seafishGame.adjustWidth, bolha.getTexture().getHeight() * seafishGame.adjustHeight);
+        if (extraLife) {
+            batch.draw(bubble, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2), (float) (seafishGame.height - wormBonus.getHeight() * seafishGame.adjustHeight * 1.3), bubble.getTexture().getWidth() * seafishGame.adjustWidth, bubble.getTexture().getHeight() * seafishGame.adjustHeight);
         }
 
         metersLabel.draw(batch, (int) metersScore + "m", (seafishGame.width - seafishGame.differenceBetweenWidth) / 2 - (metersLayout.width / 2), seafishGame.height - (seafishGame.height / 10));
@@ -592,19 +570,19 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
         if (gameOver) {
             batch.draw(gameOverText, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (gameOverText.getWidth() * seafishGame.adjustWidth / 2), (float) (seafishGame.height - (gameOverText.getHeight() * seafishGame.adjustHeight * 2.5)), gameOverText.getWidth() * seafishGame.adjustWidth, gameOverText.getHeight() * seafishGame.adjustHeight);
             batch.draw(reload, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (reload.getWidth() * seafishGame.adjustWidth), seafishGame.height / 2, 150 * seafishGame.adjustWidth, 150 * seafishGame.adjustHeight);
-            batch.draw(menuBotao, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (menuBotao.getWidth() * seafishGame.adjustWidth / 2), (float) ((seafishGame.height / 3) - menuSprite.getHeight() * seafishGame.adjustHeight * 1.5), menuBotao.getWidth() * seafishGame.adjustWidth, menuBotao.getHeight() * seafishGame.adjustHeight);
+            batch.draw(menuButton, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (menuButton.getWidth() * seafishGame.adjustWidth / 2), (float) ((seafishGame.height / 3) - menuSprite.getHeight() * seafishGame.adjustHeight * 1.5), menuButton.getWidth() * seafishGame.adjustWidth, menuButton.getHeight() * seafishGame.adjustHeight);
         }
 
-        if (mostraTelaSegueJogo) {
-            batch.draw(continueText, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (continueText.getWidth() * seafishGame.adjustWidth / 2), (float) (seafishGame.height - (continueText.getHeight() * seafishGame.adjustHeight * 2.5)), continueText.getWidth() * seafishGame.adjustWidth, continueText.getHeight() * seafishGame.adjustHeight);
-            batch.draw(simBotao, (float) (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (simBotao.getWidth() * seafishGame.adjustWidth * 1.5)), (float) ((seafishGame.height / 3) - simSprite.getHeight() * seafishGame.adjustHeight * 1.5), simBotao.getWidth() * seafishGame.adjustWidth, simBotao.getHeight() * seafishGame.adjustHeight);
-            batch.draw(naoBotao, (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) + (naoBotao.getWidth() * seafishGame.adjustWidth)), (float) ((seafishGame.height / 3) - naoSprite.getHeight() * seafishGame.adjustHeight * 1.5), naoBotao.getWidth() * seafishGame.adjustWidth, naoBotao.getHeight() * seafishGame.adjustHeight);
-            batch.draw(videoIcon, (float) (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (simBotao.getWidth() * seafishGame.adjustWidth * 1.5) + videoIcon.getWidth() * seafishGame.adjustWidth * 5), (float) ((seafishGame.height / 3) - simSprite.getHeight() * seafishGame.adjustHeight * 1.5), simBotao.getWidth() * seafishGame.adjustWidth, simBotao.getHeight() * seafishGame.adjustHeight);
+        if (displayKeepPlayingScreen) {
+            batch.draw(continueButton, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (continueButton.getWidth() * seafishGame.adjustWidth / 2), (float) (seafishGame.height - (continueButton.getHeight() * seafishGame.adjustHeight * 2.5)), continueButton.getWidth() * seafishGame.adjustWidth, continueButton.getHeight() * seafishGame.adjustHeight);
+            batch.draw(yesButton, (float) (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (yesButton.getWidth() * seafishGame.adjustWidth * 1.5)), (float) ((seafishGame.height / 3) - yesSprite.getHeight() * seafishGame.adjustHeight * 1.5), yesButton.getWidth() * seafishGame.adjustWidth, yesButton.getHeight() * seafishGame.adjustHeight);
+            batch.draw(noButton, (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) + (noButton.getWidth() * seafishGame.adjustWidth)), (float) ((seafishGame.height / 3) - noSprite.getHeight() * seafishGame.adjustHeight * 1.5), noButton.getWidth() * seafishGame.adjustWidth, noButton.getHeight() * seafishGame.adjustHeight);
+            batch.draw(videoButton, (float) (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (yesButton.getWidth() * seafishGame.adjustWidth * 1.5) + videoButton.getWidth() * seafishGame.adjustWidth * 5), (float) ((seafishGame.height / 3) - yesSprite.getHeight() * seafishGame.adjustHeight * 1.5), yesButton.getWidth() * seafishGame.adjustWidth, yesButton.getHeight() * seafishGame.adjustHeight);
         }
 
-        if (voltando) {
-            if (variacaoPeixe == 0) {
-                tap.draw(batch, "tap!", TAP_X, TAP_Y);
+        if (goingBack) {
+            if (fishVariation == 0) {
+                tapLabel.draw(batch, "tap!", TAP_X, TAP_Y);
             }
         }
 
@@ -612,39 +590,39 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
 
         setTackles();
 
-        //Botões game over
+        //Game over buttons
         if (Gdx.input.justTouched()) {
             if (gameOver) {
                 if (replaySprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
                     gameOver = false;
-                    int peixe = fishNumber;
+                    int peixe = seafishGame.fishNumber;
                     System.gc();
                     dispose();
                     seafishGame.setScreen(new GameScreen(seafishGame));
                     if (metersScore < 300) {
-                        contaPartidas++;
+                        seafishGame.contaPartidas++;
                     }
-                    fishNumber = peixe;
+                    seafishGame.fishNumber = peixe;
                 }
                 if (menuSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
                     System.gc();
                     dispose();
                     seafishGame.setScreen(new MenuScreen(seafishGame));
                     if (metersScore < 300) {
-                        contaPartidas++;
+                        seafishGame.contaPartidas++;
                     }
                 }
             }
         }
 
         if (Gdx.input.justTouched()) {
-            if (mostraTelaSegueJogo) {
-                if (simSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
+            if (displayKeepPlayingScreen) {
+                if (yesSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
                     seafishGame.googleServices.showRewardedVideoAd();
-                    mostraTelaSegueJogo = false;
+                    displayKeepPlayingScreen = false;
                 }
-                if (naoSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
-                    mostraTelaSegueJogo = false;
+                if (noSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
+                    displayKeepPlayingScreen = false;
                     gameOver();
                 }
             }
@@ -652,221 +630,221 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     }
 
     private void upAndDownHook() {
-        for (int i = 0; i < anzolTocouTopo.length; i++) {
-            if (movimentoAnzolVertical[i] >= seafishGame.height - 10) {
-                anzolTocouTopo[i] = true;
+        for (int i = 0; i < hookTouchedTop.length; i++) {
+            if (verticalHookMovement[i] >= seafishGame.height - 10) {
+                hookTouchedTop[i] = true;
             }
 
-            if (movimentoAnzolVertical[i] <= 0) {
-                anzolTocouTopo[i] = false;
+            if (verticalHookMovement[i] <= 0) {
+                hookTouchedTop[i] = false;
             }
 
-            if (iniciado) {
-                if (anzolTocouTopo[i]) {
-                    movimentoAnzolVertical[i] -= (velocidade / 2);
+            if (started) {
+                if (hookTouchedTop[i]) {
+                    verticalHookMovement[i] -= (speed / 2);
                 } else {
-                    movimentoAnzolVertical[i] += (velocidade / 2);
+                    verticalHookMovement[i] += (speed / 2);
                 }
             }
         }
     }
 
     private void varyShark() {
-        if (variacaoTubarao > 1) {
-            variacaoTubarao = 0;
-        } else if (variacaoTubarao >= 0.5) {
-            obstaculos[1] = tubaroes[0];
+        if (sharkVariation > 1) {
+            sharkVariation = 0;
+        } else if (sharkVariation >= 0.5) {
+            obstacles[1] = sharks[0];
         } else {
-            obstaculos[1] = tubaroes[1];
+            obstacles[1] = sharks[1];
         }
     }
 
     private void varyFish() {
         if (!isShark) {
-            if (variacaoPeixeAux > 2) {
-                variacaoPeixeAux = 0;
-            } else if (variacaoPeixeAux >= 1) {
-                variacaoPeixe = 0;
+            if (fishVariationAux > 2) {
+                fishVariationAux = 0;
+            } else if (fishVariationAux >= 1) {
+                fishVariation = 0;
             } else {
-                variacaoPeixe = 1;
+                fishVariation = 1;
             }
         } else if (isSlowShark) {
-            if (variacaoPeixeAux > 2) {
-                variacaoPeixeAux = 0;
-            } else if (variacaoPeixeAux >= 1) {
-                variacaoPeixe = 1;
+            if (fishVariationAux > 2) {
+                fishVariationAux = 0;
+            } else if (fishVariationAux >= 1) {
+                fishVariation = 1;
             } else {
-                variacaoPeixe = 3;
+                fishVariation = 3;
             }
         } else {
-            if (variacaoPeixeAux > 2) {
-                variacaoPeixeAux = 0;
-            } else if (variacaoPeixeAux >= 1) {
-                variacaoPeixe = 3;
+            if (fishVariationAux > 2) {
+                fishVariationAux = 0;
+            } else if (fishVariationAux >= 1) {
+                fishVariation = 3;
             } else {
-                variacaoPeixe = 4;
+                fishVariation = 4;
             }
         }
     }
 
     private void VaryShoal() {
-        if (variacaoCardume > 1) {
-            variacaoCardume = 0;
-        } else if (variacaoCardume >= 0.5) {
-            obstaculos[0] = cardumes[0];
+        if (shoalVariation > 1) {
+            shoalVariation = 0;
+        } else if (shoalVariation >= 0.5) {
+            obstacles[0] = shoals[0];
         } else {
-            obstaculos[0] = cardumes[1];
+            obstacles[0] = shoals[1];
         }
     }
 
     private void controlSeaweedRotation() {
-        if (controlRotation) {
-            if (algas[2].getRotation() <= -35 * (seafishGame.adjustWidth)) {
-                controlRotation = false;
+        if (controlSeaweedRotation) {
+            if (seaweeds[2].getRotation() <= -35 * (seafishGame.adjustWidth)) {
+                controlSeaweedRotation = false;
             }
-            algas[2].rotate((float) -0.4 * seafishGame.adjustWidth);
+            seaweeds[2].rotate((float) -0.4 * seafishGame.adjustWidth);
         } else {
-            if (algas[2].getRotation() >= 20 * (seafishGame.adjustWidth)) {
-                controlRotation = true;
+            if (seaweeds[2].getRotation() >= 20 * (seafishGame.adjustWidth)) {
+                controlSeaweedRotation = true;
             }
-            algas[2].rotate((float) 0.4 * seafishGame.adjustWidth);
+            seaweeds[2].rotate((float) 0.4 * seafishGame.adjustWidth);
         }
-        algas[variacaoAlga].setPosition(posicaoMovimentoObstaculoHorizontal[variacaoAlga], ((-algas[variacaoAlga].getTexture().getHeight()) * seafishGame.adjustHeight) / 5);
-        algas[2].setPosition(posicaoMovimentoObstaculoHorizontal[2], ((-algas[2].getTexture().getHeight()) * seafishGame.adjustHeight) / 5);
+        seaweeds[seaweedVariation].setPosition(positionMovementHorizontalObstacle[seaweedVariation], ((-seaweeds[seaweedVariation].getTexture().getHeight()) * seafishGame.adjustHeight) / 5);
+        seaweeds[2].setPosition(positionMovementHorizontalObstacle[2], ((-seaweeds[2].getTexture().getHeight()) * seafishGame.adjustHeight) / 5);
     }
 
     private void testHook() {
-        if (Intersector.overlaps(peixeCircle, anzoisCircle[0])) {
+        if (Intersector.overlaps(fishCircle, hooksCircle[0])) {
             backToStart(1);
-        } else if (Intersector.overlaps(peixeCircle, anzoisCircle[1])) {
+        } else if (Intersector.overlaps(fishCircle, hooksCircle[1])) {
             backToStart(2);
-        } else if (Intersector.overlaps(peixeCircle, anzoisCircle[2])) {
+        } else if (Intersector.overlaps(fishCircle, hooksCircle[2])) {
             backToStart(3);
-        } else if (Intersector.overlaps(peixeCircle, anzoisCircle[3])) {
+        } else if (Intersector.overlaps(fishCircle, hooksCircle[3])) {
             backToStart(4);
         } else {
-            voltando = false;
-            if (!mostraTelaSegueJogo) {
-                pausa = false;
+            goingBack = false;
+            if (!displayKeepPlayingScreen) {
+                paused = false;
             }
         }
     }
 
     private void backToStart(float circle) {
-        if (!voltando) {
+        if (!goingBack) {
             caughtByHook++;
         }
-        voltando = true;
-        setor = false;
-        contaMetrosSetor = 0;
+        goingBack = true;
+        sector = false;
+        countSectorMeters = 0;
         if (Gdx.input.justTouched()) {
-            iniciado = true;
+            started = true;
         }
-        if (iniciado) {
-            numMinhocas = 0;
-            velocidadeQueda = 0;
-            pausa = true;
+        if (started) {
+            wormNumber = 0;
+            fallSpeed = 0;
+            paused = true;
             if (circle == 1) {
-                for (int i = 0; i < posicaoMovimentoObstaculoHorizontal.length; i++) {
+                for (int i = 0; i < positionMovementHorizontalObstacle.length; i++) {
                     if (i == 0) {
-                        posicaoMovimentoObstaculoHorizontal[i] += 0;
+                        positionMovementHorizontalObstacle[i] += 0;
                     } else {
-                        posicaoMovimentoObstaculoHorizontal[i] += velocidade * VELOCIDADE_OBSTACULO;
+                        positionMovementHorizontalObstacle[i] += speed * OBSTACLE_SPEED;
                     }
                 }
             } else if (circle == 2) {
-                for (int i = 0; i < posicaoMovimentoObstaculoHorizontal.length; i++) {
+                for (int i = 0; i < positionMovementHorizontalObstacle.length; i++) {
                     if (i == 1) {
-                        posicaoMovimentoObstaculoHorizontal[i] += 0;
+                        positionMovementHorizontalObstacle[i] += 0;
                     } else {
-                        posicaoMovimentoObstaculoHorizontal[i] += velocidade * VELOCIDADE_OBSTACULO;
+                        positionMovementHorizontalObstacle[i] += speed * OBSTACLE_SPEED;
                     }
                 }
             } else if (circle == 3) {
-                for (int i = 0; i < posicaoMovimentoObstaculoHorizontal.length; i++) {
+                for (int i = 0; i < positionMovementHorizontalObstacle.length; i++) {
                     if (i == 2) {
-                        posicaoMovimentoObstaculoHorizontal[i] += 0;
+                        positionMovementHorizontalObstacle[i] += 0;
                     } else {
-                        posicaoMovimentoObstaculoHorizontal[i] += velocidade * VELOCIDADE_OBSTACULO;
+                        positionMovementHorizontalObstacle[i] += speed * OBSTACLE_SPEED;
                     }
                 }
             } else if (circle == 4) {
-                for (int i = 0; i < posicaoMovimentoObstaculoHorizontal.length; i++) {
+                for (int i = 0; i < positionMovementHorizontalObstacle.length; i++) {
                     if (i == 3) {
-                        posicaoMovimentoObstaculoHorizontal[i] += 0;
+                        positionMovementHorizontalObstacle[i] += 0;
                     } else {
-                        posicaoMovimentoObstaculoHorizontal[i] += velocidade * VELOCIDADE_OBSTACULO;
+                        positionMovementHorizontalObstacle[i] += speed * OBSTACLE_SPEED;
                     }
                 }
             }
 
-            movimentoEnfeiteHorizontal += velocidade * VELOCIDADE_OBSTACULO;
+            horizontalOrnamentMovement += speed * OBSTACLE_SPEED;
 
             if (metersScore > 0) {
                 sortPreviousTackle();
             } else {
                 gameOver = false;
-                colide = true;
-                posicaoInicialVertical = posicaoInicialVertical - 30;
-                velocidade = VELOCIDADE_INICIAL;
-                metersSpeed = VELOCIDADE_METROS_INICIAL;
+                collides = true;
+                verticalInitialPosition = verticalInitialPosition - 30;
+                speed = INITIAL_SPEED;
+                metersSpeed = INITIAL_METERS_SPEED;
             }
 
             if (Gdx.input.justTouched()) {
                 switch ((int) circle - 1) {
                     case 0:
-                        toquesParaSoltar = TOQUES_ANZOL1;
+                        touchesToRelease = TOUCHES_HOOK1;
                         break;
                     case 1:
-                        toquesParaSoltar = TOQUES_ANZOL2;
+                        touchesToRelease = TOUCHES_HOOK2;
                         break;
                     case 2:
-                        toquesParaSoltar = TOQUES_ANZOL3;
+                        touchesToRelease = TOUCHES_HOOK3;
                         break;
                     case 3:
-                        toquesParaSoltar = TOQUES_ANZOL4;
+                        touchesToRelease = TOUCHES_HOOK4;
                         break;
                     default:
-                        toquesParaSoltar = TOQUES_ANZOL1;
+                        touchesToRelease = TOUCHES_HOOK1;
                 }
-                toques++;
-                if (toques >= toquesParaSoltar) {
-                    posicaoInicialVertical -= 30;
-                    posicaoMovimentoObstaculoHorizontal[0] = seafishGame.width;
-                    posicaoMovimentoObstaculoHorizontal[1] = (float) ((seafishGame.width - seafishGame.differenceBetweenWidth) * 1.5);
-                    posicaoMovimentoObstaculoHorizontal[2] = seafishGame.width * 2;
-                    posicaoMovimentoObstaculoHorizontal[3] = (float) ((seafishGame.width - seafishGame.differenceBetweenWidth) * 2.5);
+                touches++;
+                if (touches >= touchesToRelease) {
+                    verticalInitialPosition -= 30;
+                    positionMovementHorizontalObstacle[0] = seafishGame.width;
+                    positionMovementHorizontalObstacle[1] = (float) ((seafishGame.width - seafishGame.differenceBetweenWidth) * 1.5);
+                    positionMovementHorizontalObstacle[2] = seafishGame.width * 2;
+                    positionMovementHorizontalObstacle[3] = (float) ((seafishGame.width - seafishGame.differenceBetweenWidth) * 2.5);
                     gameOver = false;
-                    colide = true;
-                    posicaoInicialVertical = seafishGame.height / 2;
-                    toques = 0;
+                    collides = true;
+                    verticalInitialPosition = seafishGame.height / 2;
+                    touches = 0;
 
                     if (metersScore >= 4000) {
-                        velocidade = 33 * seafishGame.adjustWidth;
-                        metersSpeed = (int) (VELOCIDADE_INICIAL);
+                        speed = 33 * seafishGame.adjustWidth;
+                        metersSpeed = (int) (INITIAL_SPEED);
                     } else if (metersScore >= 3000) {
-                        velocidade = 30 * seafishGame.adjustWidth;
+                        speed = 30 * seafishGame.adjustWidth;
                         metersSpeed = (int) (25 * seafishGame.adjustWidth);
                     } else if (metersScore >= 25000) {
-                        velocidade = 27 * seafishGame.adjustWidth;
+                        speed = 27 * seafishGame.adjustWidth;
                         metersSpeed = (int) (36 * seafishGame.adjustWidth);
                     } else if (metersScore >= 2000) {
-                        velocidade = 24 * seafishGame.adjustWidth;
+                        speed = 24 * seafishGame.adjustWidth;
                         metersSpeed = (int) (47 * seafishGame.adjustWidth);
                     } else if (metersScore >= 1500) {
-                        velocidade = 21 * seafishGame.adjustWidth;
+                        speed = 21 * seafishGame.adjustWidth;
                         metersSpeed = (int) (58 * seafishGame.adjustWidth);
                     } else if (metersScore >= 1000) {
-                        velocidade = 18 * seafishGame.adjustWidth;
+                        speed = 18 * seafishGame.adjustWidth;
                         metersSpeed = (int) (71 * seafishGame.adjustWidth);
                     } else if (metersScore >= 500) {
-                        velocidade = 15 * seafishGame.adjustWidth;
+                        speed = 15 * seafishGame.adjustWidth;
                         metersSpeed = (int) (82 * seafishGame.adjustWidth);
                     } else if (metersScore >= 250) {
-                        velocidade = 12 * seafishGame.adjustWidth;
+                        speed = 12 * seafishGame.adjustWidth;
                         metersSpeed = (int) (90 * seafishGame.adjustWidth);
                     } else if (metersScore <= 5) {
-                        velocidade = VELOCIDADE_INICIAL;
+                        speed = INITIAL_SPEED;
                         metersSpeed = (int) (100 * seafishGame.adjustWidth);
                     }
                 }
@@ -875,17 +853,17 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     }
 
     private void countWarm(int warmNumber) {
-        if (!colidiuMinhoca[warmNumber]) {
-            if (numMinhocas <= 9) {
+        if (!wormCollided[warmNumber]) {
+            if (wormNumber <= 9) {
                 if (!isSlowShark) {
-                    numMinhocas++;
+                    wormNumber++;
                     caughtWarms++;
                     eatSound.play(0.9f);
-                    colidiuMinhoca[warmNumber] = true;
+                    wormCollided[warmNumber] = true;
                 }
             } else if (!isShark) {
-                numMinhocas = 1;
-                colide = false;
+                wormNumber = 1;
+                collides = false;
                 changeBackground();
                 turnedShark++;
             }
@@ -893,12 +871,12 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     }
 
     private void changeBackground() {
-        if (contaFundo <= 5) {
-            contaFundo++;
-            contaEnfeite++;
+        if (countBackground <= 5) {
+            countBackground++;
+            countOrnament++;
         } else {
-            contaFundo = 0;
-            contaEnfeite = 0;
+            countBackground = 0;
+            countOrnament = 0;
         }
     }
 
@@ -906,10 +884,10 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
         countSharkMeters += 0.5;
         if (countSharkMeters <= 100) {
             this.metersScore += 0.5;
-            for (int i = 0; i < posicaoMovimentoObstaculoHorizontal.length; i++) {
-                posicaoMovimentoObstaculoHorizontal[i] -= velocidade * (VELOCIDADE_INICIAL);
+            for (int i = 0; i < positionMovementHorizontalObstacle.length; i++) {
+                positionMovementHorizontalObstacle[i] -= speed * (INITIAL_SPEED);
             }
-            movimentoEnfeiteHorizontal -= velocidade * VELOCIDADE_INICIAL;
+            horizontalOrnamentMovement -= speed * INITIAL_SPEED;
             isShark = true;
         } else if (countSharkMeters <= 190) {
             if (countSharkMeters % 5 == 0) {
@@ -918,7 +896,7 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
             isSlowShark = true;
             isShark = true;
         } else {
-            colide = true;
+            collides = true;
             countSharkMeters = 0;
             isSlowShark = false;
             isShark = false;
@@ -926,72 +904,72 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     }
 
     private void testCollision() {
-        if (Intersector.overlaps(peixeCircle, piranhasHorizontalRect[0]) || Intersector.overlaps(peixeCircle, piranhasHorizontalRect[1]) ||
-                Intersector.overlaps(peixeCircle, piranhasHorizontalRect[2]) || Intersector.overlaps(peixeCircle, piranhasHorizontalRect[3]) ||
-                Intersector.overlaps(peixeCircle, piranhasVerticalRect[0]) || Intersector.overlaps(peixeCircle, piranhasVerticalRect[1]) ||
-                Intersector.overlaps(peixeCircle, piranhasVerticalRect[2]) || Intersector.overlaps(peixeCircle, piranhasVerticalRect[3])) {
+        if (Intersector.overlaps(fishCircle, piranhasHorizontalRect[0]) || Intersector.overlaps(fishCircle, piranhasHorizontalRect[1]) ||
+                Intersector.overlaps(fishCircle, piranhasHorizontalRect[2]) || Intersector.overlaps(fishCircle, piranhasHorizontalRect[3]) ||
+                Intersector.overlaps(fishCircle, piranhasVerticalRect[0]) || Intersector.overlaps(fishCircle, piranhasVerticalRect[1]) ||
+                Intersector.overlaps(fishCircle, piranhasVerticalRect[2]) || Intersector.overlaps(fishCircle, piranhasVerticalRect[3])) {
 
             deathTackle = "images/obstacles/piranhas.png";
             actionOnCollision(2);
 
-        } else if (Intersector.overlaps(peixeCircle, tubaroesRect[0]) || Intersector.overlaps(peixeCircle, tubaroesRect[1]) ||
-                Intersector.overlaps(peixeCircle, tubaroesRect[2]) || Intersector.overlaps(peixeCircle, tubaroesRect[3])) {
+        } else if (Intersector.overlaps(fishCircle, sharksRect[0]) || Intersector.overlaps(fishCircle, sharksRect[1]) ||
+                Intersector.overlaps(fishCircle, sharksRect[2]) || Intersector.overlaps(fishCircle, sharksRect[3])) {
 
             deathTackle = "images/obstacles/tubaraoinimigo2.png";
             actionOnCollision(2);
 
-        } else if (Intersector.overlaps(peixeCircle, poluicoesCircle[0])) {
-            deathTackle = obstaculos[numObstaculo[0]].getTexture().toString();
+        } else if (Intersector.overlaps(fishCircle, pollutionCircle[0])) {
+            deathTackle = obstacles[obstacleNumber[0]].getTexture().toString();
             actionOnCollision(4);
-        } else if (Intersector.overlaps(peixeCircle, poluicoesCircle[1])) {
-            deathTackle = obstaculos[numObstaculo[1]].getTexture().toString();
+        } else if (Intersector.overlaps(fishCircle, pollutionCircle[1])) {
+            deathTackle = obstacles[obstacleNumber[1]].getTexture().toString();
             actionOnCollision(4);
-        } else if (Intersector.overlaps(peixeCircle, poluicoesCircle[2])) {
-            deathTackle = obstaculos[numObstaculo[2]].getTexture().toString();
+        } else if (Intersector.overlaps(fishCircle, pollutionCircle[2])) {
+            deathTackle = obstacles[obstacleNumber[2]].getTexture().toString();
             actionOnCollision(4);
-        } else if (Intersector.overlaps(peixeCircle, poluicoesCircle[3])) {
-            deathTackle = obstaculos[numObstaculo[3]].getTexture().toString();
+        } else if (Intersector.overlaps(fishCircle, pollutionCircle[3])) {
+            deathTackle = obstacles[obstacleNumber[3]].getTexture().toString();
             actionOnCollision(4);
-        } else if (Intersector.overlaps(peixeCircle, poluicoesCircle[4])) {
-            deathTackle = obstaculos[numObstaculo[4]].getTexture().toString();
+        } else if (Intersector.overlaps(fishCircle, pollutionCircle[4])) {
+            deathTackle = obstacles[obstacleNumber[4]].getTexture().toString();
             actionOnCollision(4);
         } else {
-            colidiuObstaculo = false;
-            isColiding = false;
+            obstacleCollided = false;
+            isColliding = false;
         }
-        if (isColiding) {
-            variacaoPeixe = 2;
+        if (isColliding) {
+            fishVariation = 2;
         }
     }
 
     private void actionOnCollision(int decreaseLives) {
-        isColiding = true;
-        if (!colidiuObstaculo) {
+        isColliding = true;
+        if (!obstacleCollided) {
             Gdx.input.vibrate(50);
-            numMinhocas -= decreaseLives;
+            wormNumber -= decreaseLives;
             hitSound.play();
-            colidiuObstaculo = true;
-            if (numMinhocas < 0) {
-                if (vidaExtra) {
-                    vidaExtra = false;
-                    mostraBolha = true;
-                    numMinhocas = 0;
+            obstacleCollided = true;
+            if (wormNumber < 0) {
+                if (extraLife) {
+                    extraLife = false;
+                    showBubble = true;
+                    wormNumber = 0;
                 } else {
                     if (!isRewardedYet && showRewardVideo()) {
                         if (seafishGame.googleServices.hasVideoLoaded()) {
-                            iniciado = false;
-                            pausa = true;
-                            mostraTelaSegueJogo = true;
+                            started = false;
+                            paused = true;
+                            displayKeepPlayingScreen = true;
                         } else {
                             gameOver();
                         }
                     } else {
                         gameOver();
-                        if (contaPartidas == 2 || metersScore >= 300) {
+                        if (seafishGame.contaPartidas == 2 || metersScore >= 300) {
                             seafishGame.handler.showInterstitialAd(new Runnable() {
                                 @Override
                                 public void run() {
-                                    contaPartidas = 0;
+                                    seafishGame.contaPartidas = 0;
                                 }
                             });
                         }
@@ -1005,106 +983,98 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
         backgroundMusic.dispose();
         gameOver = true;
         gameOverSound.play();
-        saveScores();
-    }
-
-    private void saveScores() {
-        seafishGame.rankingInterface.saveRecord((int) metersScore, peixes[fishNumber][variacaoPeixe].getTexture().toString(), deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook);
-        if (metersScore > record) {
-            prefs.putInteger("score", (int) metersScore);
-            prefs.flush();
-        }
+        seafishGame.saveScores((int) metersScore, fishes[seafishGame.fishNumber][fishVariation].getTexture().toString(), deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook);
     }
 
     private boolean showRewardVideo() {
-        return record >= 70 && metersScore >= record - (record / 3F) && metersScore <= record;
+        return seafishGame.record >= 70 && metersScore >= seafishGame.record - (seafishGame.record / 3F) && metersScore <= seafishGame.record;
     }
 
     private void setTackles() {
-        if (numObstaculo[0] == 0) {
-            piranhasVerticalRect[0].set(posicaoMovimentoObstaculoHorizontal[0] + obstaculos[numObstaculo[0]].getWidth() * seafishGame.adjustWidth / 3, alturaObstaculo[0], (obstaculos[numObstaculo[0]].getWidth() * seafishGame.adjustWidth / 3), obstaculos[numObstaculo[0]].getHeight() * seafishGame.adjustHeight);
-            piranhasHorizontalRect[0].set(posicaoMovimentoObstaculoHorizontal[0], alturaObstaculo[0] + obstaculos[numObstaculo[0]].getHeight() * seafishGame.adjustHeight / 3, obstaculos[numObstaculo[0]].getWidth() * seafishGame.adjustWidth, (obstaculos[numObstaculo[0]].getHeight() * seafishGame.adjustHeight / 3));
-        } else if (numObstaculo[0] == 1) {
-            tubaroesRect[0].set(posicaoMovimentoObstaculoHorizontal[0] + obstaculos[numObstaculo[0]].getWidth() * seafishGame.adjustWidth / 9, (float) (alturaObstaculo[0] + obstaculos[numObstaculo[0]].getHeight() * seafishGame.adjustHeight / 4.5), (float) (obstaculos[numObstaculo[0]].getWidth() * seafishGame.adjustWidth / 1.5), (float) (obstaculos[numObstaculo[0]].getHeight() * seafishGame.adjustHeight / 2.5));
-        } else if (numObstaculo[0] == 2 || numObstaculo[0] == 3 || numObstaculo[0] == 4 || numObstaculo[0] == 5 || numObstaculo[0] == 6) {
-            poluicoesCircle[0].set(posicaoMovimentoObstaculoHorizontal[0] + obstaculos[numObstaculo[0]].getWidth() * seafishGame.adjustWidth / 2, alturaObstaculo[0] + obstaculos[numObstaculo[0]].getHeight() * seafishGame.adjustHeight / 2, obstaculos[numObstaculo[0]].getWidth() * seafishGame.adjustWidth / 2);
-        } else if (numObstaculo[0] == 7 || numObstaculo[0] == 8 || numObstaculo[0] == 9 || numObstaculo[0] == 10) {
-            anzoisCircle[0].set(posicaoMovimentoObstaculoHorizontal[0] + obstaculos[numObstaculo[0]].getWidth() * seafishGame.adjustWidth / 2, movimentoAnzolVertical[0] + obstaculos[numObstaculo[0]].getWidth() * seafishGame.adjustWidth / 2, (obstaculos[numObstaculo[0]].getWidth() * seafishGame.adjustWidth / 2));
+        if (obstacleNumber[0] == 0) {
+            piranhasVerticalRect[0].set(positionMovementHorizontalObstacle[0] + obstacles[obstacleNumber[0]].getWidth() * seafishGame.adjustWidth / 3, obstacleHeight[0], (obstacles[obstacleNumber[0]].getWidth() * seafishGame.adjustWidth / 3), obstacles[obstacleNumber[0]].getHeight() * seafishGame.adjustHeight);
+            piranhasHorizontalRect[0].set(positionMovementHorizontalObstacle[0], obstacleHeight[0] + obstacles[obstacleNumber[0]].getHeight() * seafishGame.adjustHeight / 3, obstacles[obstacleNumber[0]].getWidth() * seafishGame.adjustWidth, (obstacles[obstacleNumber[0]].getHeight() * seafishGame.adjustHeight / 3));
+        } else if (obstacleNumber[0] == 1) {
+            sharksRect[0].set(positionMovementHorizontalObstacle[0] + obstacles[obstacleNumber[0]].getWidth() * seafishGame.adjustWidth / 9, (float) (obstacleHeight[0] + obstacles[obstacleNumber[0]].getHeight() * seafishGame.adjustHeight / 4.5), (float) (obstacles[obstacleNumber[0]].getWidth() * seafishGame.adjustWidth / 1.5), (float) (obstacles[obstacleNumber[0]].getHeight() * seafishGame.adjustHeight / 2.5));
+        } else if (obstacleNumber[0] == 2 || obstacleNumber[0] == 3 || obstacleNumber[0] == 4 || obstacleNumber[0] == 5 || obstacleNumber[0] == 6) {
+            pollutionCircle[0].set(positionMovementHorizontalObstacle[0] + obstacles[obstacleNumber[0]].getWidth() * seafishGame.adjustWidth / 2, obstacleHeight[0] + obstacles[obstacleNumber[0]].getHeight() * seafishGame.adjustHeight / 2, obstacles[obstacleNumber[0]].getWidth() * seafishGame.adjustWidth / 2);
+        } else if (obstacleNumber[0] == 7 || obstacleNumber[0] == 8 || obstacleNumber[0] == 9 || obstacleNumber[0] == 10) {
+            hooksCircle[0].set(positionMovementHorizontalObstacle[0] + obstacles[obstacleNumber[0]].getWidth() * seafishGame.adjustWidth / 2, verticalHookMovement[0] + obstacles[obstacleNumber[0]].getWidth() * seafishGame.adjustWidth / 2, (obstacles[obstacleNumber[0]].getWidth() * seafishGame.adjustWidth / 2));
         }
 
-        if (numObstaculo[1] == 0) {
-            piranhasVerticalRect[1].set(posicaoMovimentoObstaculoHorizontal[1] + obstaculos[numObstaculo[1]].getWidth() * seafishGame.adjustWidth / 3, alturaObstaculo[1], (obstaculos[numObstaculo[1]].getWidth() * seafishGame.adjustWidth / 3), obstaculos[numObstaculo[1]].getHeight() * seafishGame.adjustHeight);
-            piranhasHorizontalRect[1].set(posicaoMovimentoObstaculoHorizontal[1], alturaObstaculo[1] + obstaculos[numObstaculo[1]].getHeight() * seafishGame.adjustHeight / 3, obstaculos[numObstaculo[1]].getWidth() * seafishGame.adjustWidth, (obstaculos[numObstaculo[1]].getHeight() * seafishGame.adjustHeight / 3));
-        } else if (numObstaculo[1] == 1) {
-            tubaroesRect[1].set(posicaoMovimentoObstaculoHorizontal[1] + obstaculos[numObstaculo[1]].getWidth() * seafishGame.adjustWidth / 9, (float) (alturaObstaculo[1] + obstaculos[numObstaculo[1]].getHeight() * seafishGame.adjustHeight / 4.5), (float) (obstaculos[numObstaculo[1]].getWidth() * seafishGame.adjustWidth / 1.5), (float) (obstaculos[numObstaculo[1]].getHeight() * seafishGame.adjustHeight / 2.5));
-        } else if (numObstaculo[1] == 2 || numObstaculo[1] == 3 || numObstaculo[1] == 4 || numObstaculo[1] == 5 || numObstaculo[1] == 6) {
-            poluicoesCircle[1].set(posicaoMovimentoObstaculoHorizontal[1] + obstaculos[numObstaculo[1]].getWidth() * seafishGame.adjustWidth / 2, alturaObstaculo[1] + obstaculos[numObstaculo[1]].getHeight() * seafishGame.adjustHeight / 2, obstaculos[numObstaculo[1]].getWidth() * seafishGame.adjustWidth / 2);
-        } else if (numObstaculo[1] == 7 || numObstaculo[1] == 8 || numObstaculo[1] == 9 || numObstaculo[1] == 10) {
-            anzoisCircle[1].set(posicaoMovimentoObstaculoHorizontal[1] + obstaculos[numObstaculo[1]].getWidth() * seafishGame.adjustWidth / 2, movimentoAnzolVertical[1] + obstaculos[numObstaculo[1]].getWidth() * seafishGame.adjustWidth / 2, (obstaculos[numObstaculo[1]].getWidth() * seafishGame.adjustWidth / 2));
+        if (obstacleNumber[1] == 0) {
+            piranhasVerticalRect[1].set(positionMovementHorizontalObstacle[1] + obstacles[obstacleNumber[1]].getWidth() * seafishGame.adjustWidth / 3, obstacleHeight[1], (obstacles[obstacleNumber[1]].getWidth() * seafishGame.adjustWidth / 3), obstacles[obstacleNumber[1]].getHeight() * seafishGame.adjustHeight);
+            piranhasHorizontalRect[1].set(positionMovementHorizontalObstacle[1], obstacleHeight[1] + obstacles[obstacleNumber[1]].getHeight() * seafishGame.adjustHeight / 3, obstacles[obstacleNumber[1]].getWidth() * seafishGame.adjustWidth, (obstacles[obstacleNumber[1]].getHeight() * seafishGame.adjustHeight / 3));
+        } else if (obstacleNumber[1] == 1) {
+            sharksRect[1].set(positionMovementHorizontalObstacle[1] + obstacles[obstacleNumber[1]].getWidth() * seafishGame.adjustWidth / 9, (float) (obstacleHeight[1] + obstacles[obstacleNumber[1]].getHeight() * seafishGame.adjustHeight / 4.5), (float) (obstacles[obstacleNumber[1]].getWidth() * seafishGame.adjustWidth / 1.5), (float) (obstacles[obstacleNumber[1]].getHeight() * seafishGame.adjustHeight / 2.5));
+        } else if (obstacleNumber[1] == 2 || obstacleNumber[1] == 3 || obstacleNumber[1] == 4 || obstacleNumber[1] == 5 || obstacleNumber[1] == 6) {
+            pollutionCircle[1].set(positionMovementHorizontalObstacle[1] + obstacles[obstacleNumber[1]].getWidth() * seafishGame.adjustWidth / 2, obstacleHeight[1] + obstacles[obstacleNumber[1]].getHeight() * seafishGame.adjustHeight / 2, obstacles[obstacleNumber[1]].getWidth() * seafishGame.adjustWidth / 2);
+        } else if (obstacleNumber[1] == 7 || obstacleNumber[1] == 8 || obstacleNumber[1] == 9 || obstacleNumber[1] == 10) {
+            hooksCircle[1].set(positionMovementHorizontalObstacle[1] + obstacles[obstacleNumber[1]].getWidth() * seafishGame.adjustWidth / 2, verticalHookMovement[1] + obstacles[obstacleNumber[1]].getWidth() * seafishGame.adjustWidth / 2, (obstacles[obstacleNumber[1]].getWidth() * seafishGame.adjustWidth / 2));
         }
 
-        if (numObstaculo[2] == 0) {
-            piranhasVerticalRect[2].set(posicaoMovimentoObstaculoHorizontal[2] + obstaculos[numObstaculo[2]].getWidth() * seafishGame.adjustWidth / 3, alturaObstaculo[2], (obstaculos[numObstaculo[2]].getWidth() * seafishGame.adjustWidth / 3), obstaculos[numObstaculo[2]].getHeight() * seafishGame.adjustHeight);
-            piranhasHorizontalRect[2].set(posicaoMovimentoObstaculoHorizontal[2], alturaObstaculo[2] + obstaculos[numObstaculo[2]].getHeight() * seafishGame.adjustHeight / 3, obstaculos[numObstaculo[2]].getWidth() * seafishGame.adjustWidth, (obstaculos[numObstaculo[2]].getHeight() * seafishGame.adjustHeight / 3));
-        } else if (numObstaculo[2] == 1) {
-            tubaroesRect[2].set(posicaoMovimentoObstaculoHorizontal[2] + obstaculos[numObstaculo[2]].getWidth() * seafishGame.adjustWidth / 9, (float) (alturaObstaculo[2] + obstaculos[numObstaculo[2]].getHeight() * seafishGame.adjustHeight / 4.5), (float) (obstaculos[numObstaculo[2]].getWidth() * seafishGame.adjustWidth / 1.5), (float) (obstaculos[numObstaculo[2]].getHeight() * seafishGame.adjustHeight / 2.5));
-        } else if (numObstaculo[2] == 2 || numObstaculo[2] == 3 || numObstaculo[2] == 4 || numObstaculo[2] == 5 || numObstaculo[2] == 6) {
-            poluicoesCircle[2].set(posicaoMovimentoObstaculoHorizontal[2] + obstaculos[numObstaculo[2]].getWidth() * seafishGame.adjustWidth / 2, alturaObstaculo[2] + obstaculos[numObstaculo[2]].getHeight() * seafishGame.adjustHeight / 2, obstaculos[numObstaculo[2]].getWidth() * seafishGame.adjustWidth / 2);
-        } else if (numObstaculo[2] == 7 || numObstaculo[2] == 8 || numObstaculo[2] == 9 || numObstaculo[2] == 10) {
-            anzoisCircle[2].set(posicaoMovimentoObstaculoHorizontal[2] + obstaculos[numObstaculo[2]].getWidth() * seafishGame.adjustWidth / 2, movimentoAnzolVertical[2] + obstaculos[numObstaculo[2]].getWidth() * seafishGame.adjustWidth / 2, (obstaculos[numObstaculo[2]].getWidth() * seafishGame.adjustWidth / 2));
+        if (obstacleNumber[2] == 0) {
+            piranhasVerticalRect[2].set(positionMovementHorizontalObstacle[2] + obstacles[obstacleNumber[2]].getWidth() * seafishGame.adjustWidth / 3, obstacleHeight[2], (obstacles[obstacleNumber[2]].getWidth() * seafishGame.adjustWidth / 3), obstacles[obstacleNumber[2]].getHeight() * seafishGame.adjustHeight);
+            piranhasHorizontalRect[2].set(positionMovementHorizontalObstacle[2], obstacleHeight[2] + obstacles[obstacleNumber[2]].getHeight() * seafishGame.adjustHeight / 3, obstacles[obstacleNumber[2]].getWidth() * seafishGame.adjustWidth, (obstacles[obstacleNumber[2]].getHeight() * seafishGame.adjustHeight / 3));
+        } else if (obstacleNumber[2] == 1) {
+            sharksRect[2].set(positionMovementHorizontalObstacle[2] + obstacles[obstacleNumber[2]].getWidth() * seafishGame.adjustWidth / 9, (float) (obstacleHeight[2] + obstacles[obstacleNumber[2]].getHeight() * seafishGame.adjustHeight / 4.5), (float) (obstacles[obstacleNumber[2]].getWidth() * seafishGame.adjustWidth / 1.5), (float) (obstacles[obstacleNumber[2]].getHeight() * seafishGame.adjustHeight / 2.5));
+        } else if (obstacleNumber[2] == 2 || obstacleNumber[2] == 3 || obstacleNumber[2] == 4 || obstacleNumber[2] == 5 || obstacleNumber[2] == 6) {
+            pollutionCircle[2].set(positionMovementHorizontalObstacle[2] + obstacles[obstacleNumber[2]].getWidth() * seafishGame.adjustWidth / 2, obstacleHeight[2] + obstacles[obstacleNumber[2]].getHeight() * seafishGame.adjustHeight / 2, obstacles[obstacleNumber[2]].getWidth() * seafishGame.adjustWidth / 2);
+        } else if (obstacleNumber[2] == 7 || obstacleNumber[2] == 8 || obstacleNumber[2] == 9 || obstacleNumber[2] == 10) {
+            hooksCircle[2].set(positionMovementHorizontalObstacle[2] + obstacles[obstacleNumber[2]].getWidth() * seafishGame.adjustWidth / 2, verticalHookMovement[2] + obstacles[obstacleNumber[2]].getWidth() * seafishGame.adjustWidth / 2, (obstacles[obstacleNumber[2]].getWidth() * seafishGame.adjustWidth / 2));
         }
 
-        if (numObstaculo[3] == 0) {
-            piranhasVerticalRect[3].set(posicaoMovimentoObstaculoHorizontal[3] + obstaculos[numObstaculo[3]].getWidth() * seafishGame.adjustWidth / 3, alturaObstaculo[3], (obstaculos[numObstaculo[3]].getWidth() * seafishGame.adjustWidth / 3), obstaculos[numObstaculo[3]].getHeight() * seafishGame.adjustHeight);
-            piranhasHorizontalRect[3].set(posicaoMovimentoObstaculoHorizontal[3], alturaObstaculo[3] + obstaculos[numObstaculo[3]].getHeight() * seafishGame.adjustHeight / 3, obstaculos[numObstaculo[3]].getWidth() * seafishGame.adjustWidth, (obstaculos[numObstaculo[3]].getHeight() * seafishGame.adjustHeight / 3));
-        } else if (numObstaculo[3] == 1) {
-            tubaroesRect[3].set(posicaoMovimentoObstaculoHorizontal[3] + obstaculos[numObstaculo[3]].getWidth() * seafishGame.adjustWidth / 9, (float) (alturaObstaculo[3] + obstaculos[numObstaculo[3]].getHeight() * seafishGame.adjustHeight / 4.5), (float) (obstaculos[numObstaculo[3]].getWidth() * seafishGame.adjustWidth / 1.5), (float) (obstaculos[numObstaculo[3]].getHeight() * seafishGame.adjustHeight / 2.5));
-        } else if (numObstaculo[3] == 2 || numObstaculo[3] == 3 || numObstaculo[3] == 4 || numObstaculo[3] == 5 || numObstaculo[3] == 6) {
-            poluicoesCircle[3].set(posicaoMovimentoObstaculoHorizontal[3] + obstaculos[numObstaculo[3]].getWidth() * seafishGame.adjustWidth / 2, alturaObstaculo[3] + obstaculos[numObstaculo[3]].getHeight() * seafishGame.adjustHeight / 2, obstaculos[numObstaculo[3]].getWidth() * seafishGame.adjustWidth / 2);
-        } else if (numObstaculo[3] == 7 || numObstaculo[3] == 8 || numObstaculo[3] == 9 || numObstaculo[3] == 10) {
-            anzoisCircle[3].set(posicaoMovimentoObstaculoHorizontal[3] + obstaculos[numObstaculo[3]].getWidth() * seafishGame.adjustWidth / 2, movimentoAnzolVertical[3] + obstaculos[numObstaculo[3]].getWidth() * seafishGame.adjustWidth / 2, (obstaculos[numObstaculo[3]].getWidth() * seafishGame.adjustWidth / 2));
+        if (obstacleNumber[3] == 0) {
+            piranhasVerticalRect[3].set(positionMovementHorizontalObstacle[3] + obstacles[obstacleNumber[3]].getWidth() * seafishGame.adjustWidth / 3, obstacleHeight[3], (obstacles[obstacleNumber[3]].getWidth() * seafishGame.adjustWidth / 3), obstacles[obstacleNumber[3]].getHeight() * seafishGame.adjustHeight);
+            piranhasHorizontalRect[3].set(positionMovementHorizontalObstacle[3], obstacleHeight[3] + obstacles[obstacleNumber[3]].getHeight() * seafishGame.adjustHeight / 3, obstacles[obstacleNumber[3]].getWidth() * seafishGame.adjustWidth, (obstacles[obstacleNumber[3]].getHeight() * seafishGame.adjustHeight / 3));
+        } else if (obstacleNumber[3] == 1) {
+            sharksRect[3].set(positionMovementHorizontalObstacle[3] + obstacles[obstacleNumber[3]].getWidth() * seafishGame.adjustWidth / 9, (float) (obstacleHeight[3] + obstacles[obstacleNumber[3]].getHeight() * seafishGame.adjustHeight / 4.5), (float) (obstacles[obstacleNumber[3]].getWidth() * seafishGame.adjustWidth / 1.5), (float) (obstacles[obstacleNumber[3]].getHeight() * seafishGame.adjustHeight / 2.5));
+        } else if (obstacleNumber[3] == 2 || obstacleNumber[3] == 3 || obstacleNumber[3] == 4 || obstacleNumber[3] == 5 || obstacleNumber[3] == 6) {
+            pollutionCircle[3].set(positionMovementHorizontalObstacle[3] + obstacles[obstacleNumber[3]].getWidth() * seafishGame.adjustWidth / 2, obstacleHeight[3] + obstacles[obstacleNumber[3]].getHeight() * seafishGame.adjustHeight / 2, obstacles[obstacleNumber[3]].getWidth() * seafishGame.adjustWidth / 2);
+        } else if (obstacleNumber[3] == 7 || obstacleNumber[3] == 8 || obstacleNumber[3] == 9 || obstacleNumber[3] == 10) {
+            hooksCircle[3].set(positionMovementHorizontalObstacle[3] + obstacles[obstacleNumber[3]].getWidth() * seafishGame.adjustWidth / 2, verticalHookMovement[3] + obstacles[obstacleNumber[3]].getWidth() * seafishGame.adjustWidth / 2, (obstacles[obstacleNumber[3]].getWidth() * seafishGame.adjustWidth / 2));
         }
     }
 
     private void sortNextTackle() {
         float multLargura = (float) 2.5;
-        //Verifica se o obstáculo saiu da tela e manda o próximo obstáculo
-        for (int i = 0; i < posicaoMovimentoObstaculoHorizontal.length; i++) {
+        //Check if obstacle left screen and send the next one
+        for (int i = 0; i < positionMovementHorizontalObstacle.length; i++) {
 
-            if (posicaoMovimentoObstaculoHorizontal[i] < -obstaculos[numObstaculo[i]].getWidth() * seafishGame.adjustWidth) {
-                //Sorteia o próximo obstáculo
-                numObstaculo[i] = obstaculoRandom.nextInt(10);
-                if (!setor) {
-                    if (numObstaculo[i] >= 0 && numObstaculo[i] <= 3) {
-                        numObstaculo[i] = 0;
-                    } else if (numObstaculo[i] >= 4 && numObstaculo[i] <= 6) {
-                        numObstaculo[i] = 1;
-                    } else if (numObstaculo[i] >= 7 && numObstaculo[i] <= 8) {
-                        numObstaculo[i] = numeroPoluicao.nextInt(5) + 2;
-                    } else if (numObstaculo[i] == 9) {
-                        numObstaculo[i] = i + 7;
+            if (positionMovementHorizontalObstacle[i] < -obstacles[obstacleNumber[i]].getWidth() * seafishGame.adjustWidth) {
+                //Sort next obstacle
+                obstacleNumber[i] = obstacleRandom.nextInt(10);
+                if (!sector) {
+                    if (obstacleNumber[i] >= 0 && obstacleNumber[i] <= 3) {
+                        obstacleNumber[i] = 0;
+                    } else if (obstacleNumber[i] >= 4 && obstacleNumber[i] <= 6) {
+                        obstacleNumber[i] = 1;
+                    } else if (obstacleNumber[i] >= 7 && obstacleNumber[i] <= 8) {
+                        obstacleNumber[i] = pollutionNumber.nextInt(5) + 2;
+                    } else if (obstacleNumber[i] == 9) {
+                        obstacleNumber[i] = i + 7;
                     }
                 } else {
-                    if (obstaculoAtualSetor == 3) {
-                        numObstaculo[i] = i + 7;
-                    } else if (obstaculoAtualSetor == 2) {
-                        numObstaculo[i] = numeroPoluicao.nextInt(5) + 2;
+                    if (currentSectorObstacle == 3) {
+                        obstacleNumber[i] = i + 7;
+                    } else if (currentSectorObstacle == 2) {
+                        obstacleNumber[i] = pollutionNumber.nextInt(5) + 2;
                     } else {
-                        numObstaculo[i] = obstaculoAtualSetor;
+                        obstacleNumber[i] = currentSectorObstacle;
                     }
                 }
-                if (numObstaculo[i] == 7 || numObstaculo[i] == 8 || numObstaculo[i] == 9 || numObstaculo[i] == 10) {
-                    alturaObstaculo[i] = alturaObstaculoRandom.nextInt((int) (obstaculos[numObstaculo[i]].getHeight() * seafishGame.adjustHeight / 1.5));
-                    movimentoAnzolVertical[i] = alturaObstaculo[i];
+                if (obstacleNumber[i] == 7 || obstacleNumber[i] == 8 || obstacleNumber[i] == 9 || obstacleNumber[i] == 10) {
+                    obstacleHeight[i] = heightObstacleRandom.nextInt((int) (obstacles[obstacleNumber[i]].getHeight() * seafishGame.adjustHeight / 1.5));
+                    verticalHookMovement[i] = obstacleHeight[i];
                 } else {
-                    alturaObstaculo[i] = alturaObstaculoRandom.nextInt((int) (seafishGame.height - obstaculos[numObstaculo[i]].getHeight() * seafishGame.adjustHeight / 1.5));
+                    obstacleHeight[i] = heightObstacleRandom.nextInt((int) (seafishGame.height - obstacles[obstacleNumber[i]].getHeight() * seafishGame.adjustHeight / 1.5));
                 }
 
-                posicaoMovimentoObstaculoHorizontal[i] = ((seafishGame.width - seafishGame.differenceBetweenWidth) * multLargura);
+                positionMovementHorizontalObstacle[i] = ((seafishGame.width - seafishGame.differenceBetweenWidth) * multLargura);
                 if (!isSlowShark) {
-                    distanciaMinhoca[i] = distanciaMinhocaRandom.nextInt((int) (obstaculos[numObstaculo[i]].getWidth() * seafishGame.adjustWidth * 2));
-                    alturaMinhoca[i] = (int) alturaObstaculo[i] - ((alturaMinhocaRandom.nextInt((int) (obstaculos[numObstaculo[i]].getHeight() * seafishGame.adjustHeight * 2))));
-                    minhocaColidiu[i] = false;
+                    wormDistance[i] = wormDistanceRandom.nextInt((int) (obstacles[obstacleNumber[i]].getWidth() * seafishGame.adjustWidth * 2));
+                    wormHeight[i] = (int) obstacleHeight[i] - ((wormHeightRandom.nextInt((int) (obstacles[obstacleNumber[i]].getHeight() * seafishGame.adjustHeight * 2))));
+                    wormCollidedAux[i] = false;
                 }
             }
             multLargura -= 0.5;
@@ -1113,28 +1083,28 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
 
     private void sortPreviousTackle() {
         float multLargura = (float) 2.5;
-        //Verifica se o obstáculo saiu da tela e manda o próximo obstáculo
-        for (int i = 0; i < posicaoMovimentoObstaculoHorizontal.length; i++) {
+        //Check if obstacle left screen and send another one
+        for (int i = 0; i < positionMovementHorizontalObstacle.length; i++) {
 
-            if (posicaoMovimentoObstaculoHorizontal[i] > seafishGame.width + obstaculos[numObstaculo[i]].getWidth() * seafishGame.adjustWidth) {
+            if (positionMovementHorizontalObstacle[i] > seafishGame.width + obstacles[obstacleNumber[i]].getWidth() * seafishGame.adjustWidth) {
                 metersScore -= 0.5;
-                //Sorteia o próximo obstáculo
-                numObstaculo[i] = obstaculoRandom.nextInt(10);
-                if (numObstaculo[i] >= 0 && numObstaculo[i] <= 3) {
-                    numObstaculo[i] = 0;
-                } else if (numObstaculo[i] >= 4 && numObstaculo[i] <= 6) {
-                    numObstaculo[i] = 1;
-                } else if (numObstaculo[i] >= 7 && numObstaculo[i] <= 8) {
-                    numObstaculo[i] = 2;
-                } else if (numObstaculo[i] == 9) {
-                    numObstaculo[i] = 3;
+                //Sort next obstacle
+                obstacleNumber[i] = obstacleRandom.nextInt(10);
+                if (obstacleNumber[i] >= 0 && obstacleNumber[i] <= 3) {
+                    obstacleNumber[i] = 0;
+                } else if (obstacleNumber[i] >= 4 && obstacleNumber[i] <= 6) {
+                    obstacleNumber[i] = 1;
+                } else if (obstacleNumber[i] >= 7 && obstacleNumber[i] <= 8) {
+                    obstacleNumber[i] = 2;
+                } else if (obstacleNumber[i] == 9) {
+                    obstacleNumber[i] = 3;
                 }
-                if (numObstaculo[i] == 3 || numObstaculo[i] == 4 || numObstaculo[i] == 5 || numObstaculo[i] == 6) {
-                    alturaObstaculo[i] = alturaObstaculoRandom.nextInt((int) (obstaculos[numObstaculo[i]].getHeight() * seafishGame.adjustHeight / 1.5));
+                if (obstacleNumber[i] == 3 || obstacleNumber[i] == 4 || obstacleNumber[i] == 5 || obstacleNumber[i] == 6) {
+                    obstacleHeight[i] = heightObstacleRandom.nextInt((int) (obstacles[obstacleNumber[i]].getHeight() * seafishGame.adjustHeight / 1.5));
                 } else {
-                    alturaObstaculo[i] = alturaObstaculoRandom.nextInt((int) (seafishGame.height - obstaculos[numObstaculo[i]].getHeight() * seafishGame.adjustHeight / 1.5));
+                    obstacleHeight[i] = heightObstacleRandom.nextInt((int) (seafishGame.height - obstacles[obstacleNumber[i]].getHeight() * seafishGame.adjustHeight / 1.5));
                 }
-                posicaoMovimentoObstaculoHorizontal[i] = (-obstaculos[i].getWidth() * seafishGame.adjustWidth * multLargura);
+                positionMovementHorizontalObstacle[i] = (-obstacles[i].getWidth() * seafishGame.adjustWidth * multLargura);
             }
             multLargura -= 0.5;
 
@@ -1142,154 +1112,151 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     }
 
     private void setFishes() {
-        peixes[0][0] = new Sprite(new Texture("images/characters/peixe1.png"));
-        peixes[0][1] = new Sprite(new Texture("images/characters/peixe12.png"));
-        peixes[0][2] = new Sprite(new Texture("images/characters/peixe1red.png"));
-        peixes[0][3] = new Sprite(new Texture("images/characters/tubarao1.png"));
-        peixes[0][4] = new Sprite(new Texture("images/characters/tubarao12.png"));
-        peixes[1][0] = new Sprite(new Texture("images/characters/peixe2.png"));
-        peixes[1][1] = new Sprite(new Texture("images/characters/peixe22.png"));
-        peixes[1][2] = new Sprite(new Texture("images/characters/peixe2red.png"));
-        peixes[1][3] = new Sprite(new Texture("images/characters/tubarao2.png"));
-        peixes[1][4] = new Sprite(new Texture("images/characters/tubarao22.png"));
-        peixes[2][0] = new Sprite(new Texture("images/characters/peixe3.png"));
-        peixes[2][1] = new Sprite(new Texture("images/characters/peixe32.png"));
-        peixes[2][2] = new Sprite(new Texture("images/characters/peixe3red.png"));
-        peixes[2][3] = new Sprite(new Texture("images/characters/tubarao3.png"));
-        peixes[2][4] = new Sprite(new Texture("images/characters/tubarao32.png"));
+        fishes[0][0] = new Sprite(new Texture("images/characters/peixe1.png"));
+        fishes[0][1] = new Sprite(new Texture("images/characters/peixe12.png"));
+        fishes[0][2] = new Sprite(new Texture("images/characters/peixe1red.png"));
+        fishes[0][3] = new Sprite(new Texture("images/characters/tubarao1.png"));
+        fishes[0][4] = new Sprite(new Texture("images/characters/tubarao12.png"));
+        fishes[1][0] = new Sprite(new Texture("images/characters/peixe2.png"));
+        fishes[1][1] = new Sprite(new Texture("images/characters/peixe22.png"));
+        fishes[1][2] = new Sprite(new Texture("images/characters/peixe2red.png"));
+        fishes[1][3] = new Sprite(new Texture("images/characters/tubarao2.png"));
+        fishes[1][4] = new Sprite(new Texture("images/characters/tubarao22.png"));
+        fishes[2][0] = new Sprite(new Texture("images/characters/peixe3.png"));
+        fishes[2][1] = new Sprite(new Texture("images/characters/peixe32.png"));
+        fishes[2][2] = new Sprite(new Texture("images/characters/peixe3red.png"));
+        fishes[2][3] = new Sprite(new Texture("images/characters/tubarao3.png"));
+        fishes[2][4] = new Sprite(new Texture("images/characters/tubarao32.png"));
 
-        if (record < 2000) {
-            peixes[3][0] = new Sprite(new Texture("images/characters/sombra1.png"));
-            peixes[3][1] = new Sprite(new Texture("images/characters/sombra1.png"));
+        if (seafishGame.record < 2000) {
+            fishes[3][0] = new Sprite(new Texture("images/characters/sombra1.png"));
+            fishes[3][1] = new Sprite(new Texture("images/characters/sombra1.png"));
         } else {
-            peixes[3][0] = new Sprite(new Texture("images/characters/peixe4.png"));
-            peixes[3][1] = new Sprite(new Texture("images/characters/peixe42.png"));
-            peixes[3][2] = new Sprite(new Texture("images/characters/peixe4red.png"));
-            peixes[3][3] = new Sprite(new Texture("images/characters/tubarao4.png"));
-            peixes[3][4] = new Sprite(new Texture("images/characters/tubarao42.png"));
+            fishes[3][0] = new Sprite(new Texture("images/characters/peixe4.png"));
+            fishes[3][1] = new Sprite(new Texture("images/characters/peixe42.png"));
+            fishes[3][2] = new Sprite(new Texture("images/characters/peixe4red.png"));
+            fishes[3][3] = new Sprite(new Texture("images/characters/tubarao4.png"));
+            fishes[3][4] = new Sprite(new Texture("images/characters/tubarao42.png"));
         }
 
-        if (record < 4000) {
-            peixes[4][0] = new Sprite(new Texture("images/characters/sombra2.png"));
-            peixes[4][1] = new Sprite(new Texture("images/characters/sombra2.png"));
+        if (seafishGame.record < 4000) {
+            fishes[4][0] = new Sprite(new Texture("images/characters/sombra2.png"));
+            fishes[4][1] = new Sprite(new Texture("images/characters/sombra2.png"));
         } else {
-            peixes[4][0] = new Sprite(new Texture("images/characters/peixe5.png"));
-            peixes[4][1] = new Sprite(new Texture("images/characters/peixe52.png"));
-            peixes[4][2] = new Sprite(new Texture("images/characters/peixe5red.png"));
-            peixes[4][3] = new Sprite(new Texture("images/characters/tubarao5.png"));
-            peixes[4][4] = new Sprite(new Texture("images/characters/tubarao52.png"));
+            fishes[4][0] = new Sprite(new Texture("images/characters/peixe5.png"));
+            fishes[4][1] = new Sprite(new Texture("images/characters/peixe52.png"));
+            fishes[4][2] = new Sprite(new Texture("images/characters/peixe5red.png"));
+            fishes[4][3] = new Sprite(new Texture("images/characters/tubarao5.png"));
+            fishes[4][4] = new Sprite(new Texture("images/characters/tubarao52.png"));
         }
 
-        if (record < 6000) {
-            peixes[5][0] = new Sprite(new Texture("images/characters/sombra3.png"));
-            peixes[5][1] = new Sprite(new Texture("images/characters/sombra3.png"));
+        if (seafishGame.record < 6000) {
+            fishes[5][0] = new Sprite(new Texture("images/characters/sombra3.png"));
+            fishes[5][1] = new Sprite(new Texture("images/characters/sombra3.png"));
         } else {
-            peixes[5][0] = new Sprite(new Texture("images/characters/peixe6.png"));
-            peixes[5][1] = new Sprite(new Texture("images/characters/peixe62.png"));
-            peixes[5][2] = new Sprite(new Texture("images/characters/peixe6red.png"));
-            peixes[5][3] = new Sprite(new Texture("images/characters/tubarao6.png"));
-            peixes[5][4] = new Sprite(new Texture("images/characters/tubarao62.png"));
+            fishes[5][0] = new Sprite(new Texture("images/characters/peixe6.png"));
+            fishes[5][1] = new Sprite(new Texture("images/characters/peixe62.png"));
+            fishes[5][2] = new Sprite(new Texture("images/characters/peixe6red.png"));
+            fishes[5][3] = new Sprite(new Texture("images/characters/tubarao6.png"));
+            fishes[5][4] = new Sprite(new Texture("images/characters/tubarao62.png"));
         }
 
-        if (record < 8000) {
-            peixes[6][0] = new Sprite(new Texture("images/characters/sombra4.png"));
-            peixes[6][1] = new Sprite(new Texture("images/characters/sombra4.png"));
+        if (seafishGame.record < 8000) {
+            fishes[6][0] = new Sprite(new Texture("images/characters/sombra4.png"));
+            fishes[6][1] = new Sprite(new Texture("images/characters/sombra4.png"));
         } else {
-            peixes[6][0] = new Sprite(new Texture("images/characters/peixe7.png"));
-            peixes[6][1] = new Sprite(new Texture("images/characters/peixe72.png"));
-            peixes[6][2] = new Sprite(new Texture("images/characters/peixe7red.png"));
-            peixes[6][3] = new Sprite(new Texture("images/characters/tubarao7.png"));
-            peixes[6][4] = new Sprite(new Texture("images/characters/tubarao72.png"));
+            fishes[6][0] = new Sprite(new Texture("images/characters/peixe7.png"));
+            fishes[6][1] = new Sprite(new Texture("images/characters/peixe72.png"));
+            fishes[6][2] = new Sprite(new Texture("images/characters/peixe7red.png"));
+            fishes[6][3] = new Sprite(new Texture("images/characters/tubarao7.png"));
+            fishes[6][4] = new Sprite(new Texture("images/characters/tubarao72.png"));
         }
     }
 
     private void setTextures() {
-        //Texturas
-        peixe = new Sprite(new Texture("images/characters/peixe1.png"));
-        fundo[0] = new Texture("images/scenarios/fundo1.png");
-        fundo[1] = new Texture("images/scenarios/fundo2.png");
-        fundo[2] = new Texture("images/scenarios/fundo3.png");
-        fundo[3] = new Texture("images/scenarios/fundo4.png");
-        fundo[4] = new Texture("images/scenarios/fundo5.png");
-        fundo[5] = new Texture("images/scenarios/fundo6.png");
-        fundo[6] = new Texture("images/scenarios/fundo7.png");
+        fishSprite = new Sprite(new Texture("images/characters/peixe1.png"));
+        background[0] = new Texture("images/scenarios/fundo1.png");
+        background[1] = new Texture("images/scenarios/fundo2.png");
+        background[2] = new Texture("images/scenarios/fundo3.png");
+        background[3] = new Texture("images/scenarios/fundo4.png");
+        background[4] = new Texture("images/scenarios/fundo5.png");
+        background[5] = new Texture("images/scenarios/fundo6.png");
+        background[6] = new Texture("images/scenarios/fundo7.png");
         gameOverText = new Texture("images/texts/gameover.png");
-        continueText = new Texture("images/texts/continue.png");
+        continueButton = new Texture("images/texts/continue.png");
         reload = new Texture("images/buttons/refresh.png");
-        music = new Texture("images/buttons/music.png");
-        pause = new Texture("images/buttons/pause.png");
-        menuBotao = new Texture("images/buttons/menu.png");
-        simBotao = new Texture("images/buttons/yes.png");
-        videoIcon = new Texture("images/buttons/video.png");
-        naoBotao = new Texture("images/buttons/no.png");
+        musicButton = new Texture("images/buttons/music.png");
+        pauseButton = new Texture("images/buttons/pause.png");
+        menuButton = new Texture("images/buttons/menu.png");
+        yesButton = new Texture("images/buttons/yes.png");
+        videoButton = new Texture("images/buttons/video.png");
+        noButton = new Texture("images/buttons/no.png");
         setFishes();
-        cardumes[0] = new Sprite(new Texture("images/obstacles/piranhas.png"));
-        cardumes[1] = new Sprite(new Texture("images/obstacles/piranhas2.png"));
-        tubaroes[0] = new Sprite(new Texture("images/obstacles/tubaraoinimigo2.png"));
-        tubaroes[1] = new Sprite(new Texture("images/obstacles/tubaraoinimigo22.png"));
-        poluicoes[0] = new Sprite(new Texture("images/obstacles/baiacu.png"));
-        poluicoes[1] = new Sprite(new Texture("images/obstacles/canudo.png"));
-        poluicoes[2] = new Sprite(new Texture("images/obstacles/garrafa.png"));
-        poluicoes[3] = new Sprite(new Texture("images/obstacles/pneu.png"));
-        poluicoes[4] = new Sprite(new Texture("images/obstacles/plastico.png"));
-        anzois[0] = new Sprite(new Texture("images/obstacles/anzol1.png"));
-        anzois[1] = new Sprite(new Texture("images/obstacles/anzol2.png"));
-        anzois[2] = new Sprite(new Texture("images/obstacles/anzol3.png"));
-        anzois[3] = new Sprite(new Texture("images/obstacles/anzol4.png"));
-        for (int i = 0; i < minhocasScore.length; i++) {
-            minhocasScore[i] = new Sprite(new Texture("images/elements/minhoca.png"));
+        shoals[0] = new Sprite(new Texture("images/obstacles/piranhas.png"));
+        shoals[1] = new Sprite(new Texture("images/obstacles/piranhas2.png"));
+        sharks[0] = new Sprite(new Texture("images/obstacles/tubaraoinimigo2.png"));
+        sharks[1] = new Sprite(new Texture("images/obstacles/tubaraoinimigo22.png"));
+        pollution[0] = new Sprite(new Texture("images/obstacles/baiacu.png"));
+        pollution[1] = new Sprite(new Texture("images/obstacles/canudo.png"));
+        pollution[2] = new Sprite(new Texture("images/obstacles/garrafa.png"));
+        pollution[3] = new Sprite(new Texture("images/obstacles/pneu.png"));
+        pollution[4] = new Sprite(new Texture("images/obstacles/plastico.png"));
+        hooks[0] = new Sprite(new Texture("images/obstacles/anzol1.png"));
+        hooks[1] = new Sprite(new Texture("images/obstacles/anzol2.png"));
+        hooks[2] = new Sprite(new Texture("images/obstacles/anzol3.png"));
+        hooks[3] = new Sprite(new Texture("images/obstacles/anzol4.png"));
+        for (int i = 0; i < wormScore.length; i++) {
+            wormScore[i] = new Sprite(new Texture("images/elements/minhoca.png"));
         }
-        minhocaBonus = new Sprite(new Texture("images/elements/minhocabonus.png"));
-        enfeite[0] = new Texture("images/ornaments/enfeite1.png");
-        enfeite[1] = new Texture("images/ornaments/enfeite2.png");
-        enfeite[2] = new Texture("images/ornaments/enfeite3.png");
-        enfeite[3] = new Texture("images/ornaments/enfeite4.png");
-        enfeite[4] = new Texture("images/ornaments/enfeite5.png");
-        enfeite[5] = new Texture("images/ornaments/enfeite6.png");
-        enfeite[6] = new Texture("images/ornaments/enfeite7.png");
+        wormBonus = new Sprite(new Texture("images/elements/minhocabonus.png"));
+        ornaments[0] = new Texture("images/ornaments/enfeite1.png");
+        ornaments[1] = new Texture("images/ornaments/enfeite2.png");
+        ornaments[2] = new Texture("images/ornaments/enfeite3.png");
+        ornaments[3] = new Texture("images/ornaments/enfeite4.png");
+        ornaments[4] = new Texture("images/ornaments/enfeite5.png");
+        ornaments[5] = new Texture("images/ornaments/enfeite6.png");
+        ornaments[6] = new Texture("images/ornaments/enfeite7.png");
     }
 
     private void setSeaweed() {
-        //set Algas
-        algas = new Sprite[3];
-        algas[0] = new Sprite(new Texture("images/ornaments/alga1.png"));
-        algas[0].setPosition((seafishGame.width - seafishGame.differenceBetweenWidth) / 10, -algas[0].getHeight() / 5);
-        algas[0].setSize(algas[0].getWidth() * seafishGame.adjustWidth, algas[0].getHeight() * seafishGame.adjustHeight);
+        seaweeds = new Sprite[3];
+        seaweeds[0] = new Sprite(new Texture("images/ornaments/alga1.png"));
+        seaweeds[0].setPosition((seafishGame.width - seafishGame.differenceBetweenWidth) / 10, -seaweeds[0].getHeight() / 5);
+        seaweeds[0].setSize(seaweeds[0].getWidth() * seafishGame.adjustWidth, seaweeds[0].getHeight() * seafishGame.adjustHeight);
 
-        algas[1] = new Sprite(new Texture("images/ornaments/algaVaria.png"));
-        algas[1].setPosition((seafishGame.width - seafishGame.differenceBetweenWidth) / 10, -algas[1].getHeight() / 5);
-        algas[1].setSize(algas[1].getWidth() * seafishGame.adjustWidth, algas[1].getHeight() * seafishGame.adjustHeight);
+        seaweeds[1] = new Sprite(new Texture("images/ornaments/algaVaria.png"));
+        seaweeds[1].setPosition((seafishGame.width - seafishGame.differenceBetweenWidth) / 10, -seaweeds[1].getHeight() / 5);
+        seaweeds[1].setSize(seaweeds[1].getWidth() * seafishGame.adjustWidth, seaweeds[1].getHeight() * seafishGame.adjustHeight);
 
-        algas[2] = new Sprite(new Texture("images/ornaments/alga2.png"));
-        algas[2].setPosition((seafishGame.width - seafishGame.differenceBetweenWidth) / 2, -algas[2].getHeight() / 5);
-        algas[2].setSize(algas[2].getWidth() * seafishGame.adjustWidth, algas[2].getHeight() * seafishGame.adjustHeight);
+        seaweeds[2] = new Sprite(new Texture("images/ornaments/alga2.png"));
+        seaweeds[2].setPosition((seafishGame.width - seafishGame.differenceBetweenWidth) / 2, -seaweeds[2].getHeight() / 5);
+        seaweeds[2].setSize(seaweeds[2].getWidth() * seafishGame.adjustWidth, seaweeds[2].getHeight() * seafishGame.adjustHeight);
     }
 
     private void setButtons() {
-        //Sobrepor Botões
-        menuSprite = new Sprite(menuBotao);
+        menuSprite = new Sprite(menuButton);
         menuSprite.setSize(menuSprite.getWidth() * seafishGame.adjustWidth, menuSprite.getHeight() * seafishGame.adjustHeight);
-        menuSprite.setPosition(((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (menuBotao.getWidth() * seafishGame.adjustWidth / 2), (float) ((seafishGame.height / 3) - menuSprite.getHeight() * seafishGame.adjustHeight * 1.5));
+        menuSprite.setPosition(((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (menuButton.getWidth() * seafishGame.adjustWidth / 2), (float) ((seafishGame.height / 3) - menuSprite.getHeight() * seafishGame.adjustHeight * 1.5));
 
-        simSprite = new Sprite(simBotao);
-        simSprite.setSize(simSprite.getWidth() * seafishGame.adjustWidth, simSprite.getHeight() * seafishGame.adjustHeight);
-        simSprite.setPosition((float) (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (simBotao.getWidth() * seafishGame.adjustWidth * 1.5)), (float) ((seafishGame.height / 3) - simSprite.getHeight() * seafishGame.adjustHeight * 1.5));
+        yesSprite = new Sprite(yesButton);
+        yesSprite.setSize(yesSprite.getWidth() * seafishGame.adjustWidth, yesSprite.getHeight() * seafishGame.adjustHeight);
+        yesSprite.setPosition((float) (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (yesButton.getWidth() * seafishGame.adjustWidth * 1.5)), (float) ((seafishGame.height / 3) - yesSprite.getHeight() * seafishGame.adjustHeight * 1.5));
 
-        naoSprite = new Sprite(naoBotao);
-        naoSprite.setSize(naoSprite.getWidth() * seafishGame.adjustWidth, naoSprite.getHeight() * seafishGame.adjustHeight);
-        naoSprite.setPosition((((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) + (naoBotao.getWidth() * seafishGame.adjustWidth)), (float) ((seafishGame.height / 3) - naoSprite.getHeight() * seafishGame.adjustHeight * 1.5));
+        noSprite = new Sprite(noButton);
+        noSprite.setSize(noSprite.getWidth() * seafishGame.adjustWidth, noSprite.getHeight() * seafishGame.adjustHeight);
+        noSprite.setPosition((((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) + (noButton.getWidth() * seafishGame.adjustWidth)), (float) ((seafishGame.height / 3) - noSprite.getHeight() * seafishGame.adjustHeight * 1.5));
 
         replaySprite = new Sprite(reload);
         replaySprite.setSize(150 * seafishGame.adjustWidth, 150 * seafishGame.adjustHeight);
         replaySprite.setPosition(((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (reload.getWidth() * seafishGame.adjustWidth), seafishGame.height / 2);
 
-        pauseSprite = new Sprite(pause);
-        pauseSprite.setSize(pause.getWidth() * seafishGame.adjustWidth, pause.getHeight() * seafishGame.adjustHeight);
-        pauseSprite.setPosition(pause.getWidth(), (seafishGame.height - ((float) pause.getHeight() * 1.5f)));
+        pauseSprite = new Sprite(pauseButton);
+        pauseSprite.setSize(pauseButton.getWidth() * seafishGame.adjustWidth, pauseButton.getHeight() * seafishGame.adjustHeight);
+        pauseSprite.setPosition(pauseButton.getWidth(), (seafishGame.height - ((float) pauseButton.getHeight() * 1.5f)));
 
-        musicSprite = new Sprite(music);
-        musicSprite.setSize(music.getWidth() * seafishGame.adjustWidth, music.getHeight() * seafishGame.adjustHeight);
-        musicSprite.setPosition(music.getWidth() * 3, (seafishGame.height - ((float) pause.getHeight() * 1.5f)));
+        musicSprite = new Sprite(musicButton);
+        musicSprite.setSize(musicButton.getWidth() * seafishGame.adjustWidth, musicButton.getHeight() * seafishGame.adjustHeight);
+        musicSprite.setPosition(musicButton.getWidth() * 3, (seafishGame.height - ((float) pauseButton.getHeight() * 1.5f)));
     }
 
     private void setSounds() {
@@ -1320,7 +1287,7 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     @Override
     public void onRewardedVideoAdClosedEvent() {
         if (isRewarded) {
-            numMinhocas = 4;
+            wormNumber = 4;
             isRewardedYet = true;
         } else {
             gameOver();
