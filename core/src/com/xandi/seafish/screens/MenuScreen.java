@@ -47,6 +47,7 @@ public class MenuScreen extends BaseScreen implements LoginCallback {
     @Override
     public void show() {
         super.show();
+        seafishGame.handler.showBannerAd(true);
         userNameFont = new BitmapFont();
         userNameFont.setColor(Color.YELLOW);
         userNameFont.getData().setScale(3 * seafishGame.adjustWidth);

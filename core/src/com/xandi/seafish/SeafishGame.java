@@ -42,12 +42,12 @@ public class SeafishGame extends Game implements VideoEventListener {
     public Integer record;
 
     //counters
-    private int numMinhocas;
-    public int contaPartidas = 1;
+    public int wormQuantity = 1;
+    public int countMatches = 1;
 
     //Controllers
     private boolean isRewarded;
-    private boolean isRewardedYet;
+    public boolean isRewardedYet = false;
 
     //Numero do peixe
     public int fishNumber;
@@ -104,7 +104,7 @@ public class SeafishGame extends Game implements VideoEventListener {
     @Override
     public void onRewardedVideoAdClosedEvent() {
         if (isRewarded) {
-            numMinhocas = 4;
+            wormQuantity = 4;
             isRewardedYet = true;
         } else {
             setScreen(new GameScreen(this));

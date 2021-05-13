@@ -1,9 +1,9 @@
 package com.xandi.seafish.model;
 
-public class Position {
+public class Position implements Comparable<Position> {
 
     private String userUid;
-    private int score;
+    private Integer score;
     private String usedFish;
     private int caughtWarms;
     private int turnedShark;
@@ -15,7 +15,7 @@ public class Position {
     public Position() {
     }
 
-    public Position(String userUid, int score, String usedFish, String deathTackle, int caughtWarms, int caughtSpecialWarms, int turnedShark, int caughtBubbles, int caughtByHook) {
+    public Position(String userUid, Integer score, String usedFish, String deathTackle, int caughtWarms, int caughtSpecialWarms, int turnedShark, int caughtBubbles, int caughtByHook) {
         this.userUid = userUid;
         this.score = score;
         this.usedFish = usedFish;
@@ -35,11 +35,11 @@ public class Position {
         this.userUid = userUid;
     }
 
-    public int getScore() {
+    public Integer getScore() {
         return score;
     }
 
-    public void setScore(int score) {
+    public void setScore(Integer score) {
         this.score = score;
     }
 
@@ -97,5 +97,18 @@ public class Position {
 
     public void setDeathTackle(String deathTackle) {
         this.deathTackle = deathTackle;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Position position = (Position) o;
+        return userUid.equals(position.userUid);
+    }
+
+    @Override
+    public int compareTo(Position o) {
+        return this.getScore().compareTo(o.getScore());
     }
 }

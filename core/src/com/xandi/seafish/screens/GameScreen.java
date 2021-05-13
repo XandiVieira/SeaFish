@@ -14,12 +14,11 @@ import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
 import com.xandi.seafish.SeafishGame;
-import com.xandi.seafish.interfaces.VideoEventListener;
 
 import java.util.Arrays;
 import java.util.Random;
 
-public class GameScreen extends BaseScreen implements VideoEventListener {
+public class GameScreen extends BaseScreen {
 
     private final SeafishGame seafishGame;
 
@@ -48,9 +47,9 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     private Sprite[] pollution;
     private Sprite[] hooks;
     private Sprite[] wormScore;
+    private Sprite[] obstacles;
     private Sprite wormBonus;
     private Sprite bubble;
-    private Sprite[] obstacles;
 
     //positions
     private float[] positionMovementHorizontalObstacle;
@@ -63,7 +62,6 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     private float[] verticalHookMovement;
     private float horizontalOrnamentMovement;
 
-    private int wormNumber;
     private int countBackground;
     private int countSectorMeters;
     private int currentSectorObstacle;
@@ -83,8 +81,6 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     private boolean isSlowShark;
     private boolean isShark;
     private boolean displayKeepPlayingScreen;
-    private boolean isRewarded;
-    private boolean isRewardedYet;
     private boolean showBonusWorm;
     private boolean showBubble;
     private boolean[] wormCollidedAux;
@@ -155,6 +151,8 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
 
         System.gc();
 
+        seafishGame.handler.showBannerAd(false);
+
         background = new Texture[9];
         ornaments = new Texture[7];
 
@@ -190,8 +188,6 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
         isShark = false;
         goingBack = false;
         displayKeepPlayingScreen = false;
-        isRewarded = false;
-        isRewardedYet = false;
         sector = false;
         showBonusWorm = false;
         showBubble = false;
@@ -201,7 +197,6 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
 
         Arrays.fill(hookTouchedTop, Boolean.FALSE);
 
-        wormNumber = 1;
         countBackground = 0;
         countSectorMeters = 0;
         currentSectorObstacle = 3;
@@ -362,7 +357,6 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     }
 
     private void gameState() {
-        seafishGame.handler.showBannerAd(false);
         //Prevent fish from passing the ground
         if (verticalInitialPosition < 10) {
             verticalInitialPosition = seafishGame.height / 2;
@@ -558,7 +552,7 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
             wormCollided[3] = false;
         }
 
-        for (int i = 1; i <= wormNumber; i++) {
+        for (int i = 1; i <= seafishGame.wormQuantity; i++) {
             batch.draw(wormScore[i - 1], (float) ((seafishGame.width - seafishGame.differenceBetweenWidth) - (wormScore[i - 1].getWidth() * seafishGame.adjustWidth * i * 1.15)), (seafishGame.height - recordLayout.height - (wormScore[i - 1].getHeight() * seafishGame.adjustHeight * 1.5f)), wormScore[i - 1].getWidth() * seafishGame.adjustWidth, wormScore[i - 1].getHeight() * seafishGame.adjustHeight);
         }
         if (extraLife) {
@@ -600,7 +594,7 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
                     dispose();
                     seafishGame.setScreen(new GameScreen(seafishGame));
                     if (metersScore < 300) {
-                        seafishGame.contaPartidas++;
+                        seafishGame.countMatches++;
                     }
                     seafishGame.fishNumber = peixe;
                 }
@@ -609,7 +603,7 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
                     dispose();
                     seafishGame.setScreen(new MenuScreen(seafishGame));
                     if (metersScore < 300) {
-                        seafishGame.contaPartidas++;
+                        seafishGame.countMatches++;
                     }
                 }
             }
@@ -741,7 +735,7 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
             started = true;
         }
         if (started) {
-            wormNumber = 0;
+            seafishGame.wormQuantity = 0;
             fallSpeed = 0;
             paused = true;
             if (circle == 1) {
@@ -854,15 +848,15 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
 
     private void countWarm(int warmNumber) {
         if (!wormCollided[warmNumber]) {
-            if (wormNumber <= 9) {
+            if (seafishGame.wormQuantity <= 9) {
                 if (!isSlowShark) {
-                    wormNumber++;
+                    seafishGame.wormQuantity++;
                     caughtWarms++;
                     eatSound.play(0.9f);
                     wormCollided[warmNumber] = true;
                 }
             } else if (!isShark) {
-                wormNumber = 1;
+                seafishGame.wormQuantity = 1;
                 collides = false;
                 changeBackground();
                 turnedShark++;
@@ -946,16 +940,16 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
         isColliding = true;
         if (!obstacleCollided) {
             Gdx.input.vibrate(50);
-            wormNumber -= decreaseLives;
+            seafishGame.wormQuantity -= decreaseLives;
             hitSound.play();
             obstacleCollided = true;
-            if (wormNumber < 0) {
+            if (seafishGame.wormQuantity < 0) {
                 if (extraLife) {
                     extraLife = false;
                     showBubble = true;
-                    wormNumber = 0;
+                    seafishGame.wormQuantity = 0;
                 } else {
-                    if (!isRewardedYet && showRewardVideo()) {
+                    if (!seafishGame.isRewardedYet && showRewardVideo()) {
                         if (seafishGame.googleServices.hasVideoLoaded()) {
                             started = false;
                             paused = true;
@@ -965,11 +959,11 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
                         }
                     } else {
                         gameOver();
-                        if (seafishGame.contaPartidas == 2 || metersScore >= 300) {
+                        if (seafishGame.countMatches == 2 || metersScore >= 300) {
                             seafishGame.handler.showInterstitialAd(new Runnable() {
                                 @Override
                                 public void run() {
-                                    seafishGame.contaPartidas = 0;
+                                    seafishGame.countMatches = 0;
                                 }
                             });
                         }
@@ -987,7 +981,7 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
     }
 
     private boolean showRewardVideo() {
-        return seafishGame.record >= 70 && metersScore >= seafishGame.record - (seafishGame.record / 3F) && metersScore <= seafishGame.record;
+        return (seafishGame.record != 0) && (metersScore >= seafishGame.record - (seafishGame.record / 2.1F)) && (metersScore <= seafishGame.record);
     }
 
     private void setTackles() {
@@ -1273,24 +1267,5 @@ public class GameScreen extends BaseScreen implements VideoEventListener {
         hitSound.setVolume(hitSound.play(), (float) 0.5);
         blowBubbleSound.setVolume(blowBubbleSound.play(), (float) 1);
         backgroundMusic.play();
-    }
-
-    @Override
-    public void onRewardedEvent() {
-        isRewarded = true;
-    }
-
-    @Override
-    public void onRewardedVideoAdLoadedEvent() {
-    }
-
-    @Override
-    public void onRewardedVideoAdClosedEvent() {
-        if (isRewarded) {
-            wormNumber = 4;
-            isRewardedYet = true;
-        } else {
-            gameOver();
-        }
     }
 }

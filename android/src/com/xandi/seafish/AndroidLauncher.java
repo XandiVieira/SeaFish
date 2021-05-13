@@ -28,6 +28,7 @@ import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.RequestConfiguration;
 import com.google.android.gms.ads.reward.RewardItem;
 import com.google.android.gms.ads.reward.RewardedVideoAd;
 import com.google.android.gms.ads.reward.RewardedVideoAdListener;
@@ -59,6 +60,8 @@ import com.xandi.seafish.util.Constants;
 import com.xandi.seafish.util.Util;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class AndroidLauncher extends AndroidApplication implements AdService, GoogleServices, RewardedVideoAdListener, RankingInterface, FacebookAuth, PrivacyPolicyAndTerms {
 
@@ -138,6 +141,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
             if (firebaseUser != null) {
                 getUserDataFromFirebase(firebaseUser.getUid());
             } else {
+                layout.removeView(gameView);
                 layout.addView(gameView);
             }
             isLoggedIn = firebaseUser != null;
@@ -156,12 +160,17 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
         bannerAd.setAdSize(AdSize.SMART_BANNER);
         bannerAd.setAdUnitId(AD_UNIT_ID_BANNER);
-        AdRequest.Builder builder = new AdRequest.Builder();
-        builder.addTestDevice("36EE88001735F5A5B7DB1D75A38FC19A");
+
+        List<String> testDeviceIds = Collections.singletonList("50D0F6A4C150377413FF5750D8289E5F");
+        RequestConfiguration configuration =
+                new RequestConfiguration.Builder().setTestDeviceIds(testDeviceIds).build();
+        MobileAds.setRequestConfiguration(configuration);
+
+        AdRequest request = new AdRequest.Builder().build();
         RelativeLayout.LayoutParams adParam = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        adParam.setMargins(0, 3, 0, 0);
+        adParam.setMargins(0, 0, 0, 0);
         layout.addView(bannerAd, adParam);
-        bannerAd.loadAd(builder.build());
+        bannerAd.loadAd(request);
         setContentView(layout);
 
         mInterstitialAd = new InterstitialAd(this);
@@ -405,8 +414,9 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
                 } else {
                     updateUser(user);
                 }
+                layout.removeView(gameView);
                 layout.addView(gameView);
-                loginCallback.userLoggedIn(user.getName(), user.getPersonalRecord());
+                //loginCallback.userLoggedIn(user.getName(), user.getPersonalRecord());
             }
 
             @Override

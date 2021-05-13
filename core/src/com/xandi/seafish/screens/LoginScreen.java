@@ -6,12 +6,20 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.xandi.seafish.SeafishGame;
 
+import java.util.Random;
+
 public class LoginScreen extends BaseScreen {
 
     private final SeafishGame seafishGame;
     private Sprite menuSprite, loginSprite;
-    private Texture background, menuButton, loginButton;
+    private Texture background, menuButton, loginButton, movingBubble;
     private SpriteBatch batch;
+
+    private float[] bubbleHorizontalMovement;
+    private float[] bubbleVerticalMovement;
+    private boolean[] bubbleTouchedTop;
+    private boolean[] BubbleTouchedSide;
+    private Random bubblePosition;
 
     public LoginScreen(SeafishGame seafishGame) {
         super(seafishGame);
@@ -21,6 +29,18 @@ public class LoginScreen extends BaseScreen {
     @Override
     public void show() {
         super.show();
+        seafishGame.handler.showBannerAd(true);
+
+        bubbleHorizontalMovement = new float[10];
+        bubbleVerticalMovement = new float[10];
+        bubbleTouchedTop = new boolean[10];
+        BubbleTouchedSide = new boolean[10];
+        bubblePosition = new Random();
+        for (int i = 0; i < 10; i++) {
+            bubbleHorizontalMovement[i] = (float) bubblePosition.nextInt((int) seafishGame.width * 2);
+            bubbleVerticalMovement[i] = (float) bubblePosition.nextInt((int) seafishGame.height * 2);
+        }
+
         setTextures();
         setButtons();
         batch = new SpriteBatch();
@@ -30,6 +50,7 @@ public class LoginScreen extends BaseScreen {
         background = new Texture("images/scenarios/telainicio.png");
         menuButton = new Texture("images/buttons/menu.png");
         loginButton = new Texture("images/buttons/login.png");
+        movingBubble = new Texture("images/ornaments/bolhainicio.png");
     }
 
     private void setButtons() {
@@ -64,6 +85,38 @@ public class LoginScreen extends BaseScreen {
         batch.draw(background, 0, 0, seafishGame.width, seafishGame.height);
         batch.draw(loginButton, (float) (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - ((loginButton.getWidth() * seafishGame.adjustWidth * 1.5) / 2)), (float) (((seafishGame.height * seafishGame.adjustWidth) / 2f) - ((loginSprite.getHeight() * 1.5 * seafishGame.adjustHeight))), (float) (loginButton.getWidth() * seafishGame.adjustWidth * 1.5), (float) (loginButton.getHeight() * seafishGame.adjustHeight * 1.5));
         batch.draw(menuButton, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (menuButton.getWidth() * seafishGame.adjustWidth / 2), (float) ((seafishGame.height / 3) - menuSprite.getHeight() * seafishGame.adjustHeight * 1.5), menuButton.getWidth() * seafishGame.adjustWidth, menuButton.getHeight() * seafishGame.adjustHeight);
+
+        for (int i = 0; i < 10; i++) {
+            if (bubbleHorizontalMovement[i] >= (seafishGame.width - seafishGame.differenceBetweenWidth) - movingBubble.getWidth() * seafishGame.adjustWidth) {
+                BubbleTouchedSide[i] = true;
+            }
+
+            if (bubbleHorizontalMovement[i] <= 0) {
+                BubbleTouchedSide[i] = false;
+            }
+
+            if (BubbleTouchedSide[i]) {
+                bubbleHorizontalMovement[i] -= (Gdx.graphics.getDeltaTime() * bubblePosition.nextInt(50) + 1) * seafishGame.adjustWidth;
+            } else {
+                bubbleHorizontalMovement[i] += (Gdx.graphics.getDeltaTime() * bubblePosition.nextInt(200) + 1) * seafishGame.adjustWidth;
+            }
+
+            if (bubbleVerticalMovement[i] >= seafishGame.height - movingBubble.getHeight() * seafishGame.adjustHeight) {
+                bubbleTouchedTop[i] = true;
+            }
+
+            if (bubbleVerticalMovement[i] <= 0) {
+                bubbleTouchedTop[i] = false;
+            }
+
+            if (bubbleTouchedTop[i]) {
+                bubbleVerticalMovement[i] -= (Gdx.graphics.getDeltaTime() * bubblePosition.nextInt(100) + 1) * seafishGame.adjustHeight;
+            } else {
+                bubbleVerticalMovement[i] += (Gdx.graphics.getDeltaTime() * bubblePosition.nextInt(150) + 1) * seafishGame.adjustHeight;
+            }
+            batch.draw(movingBubble, bubbleHorizontalMovement[i], bubbleVerticalMovement[i], movingBubble.getWidth() * seafishGame.adjustWidth, movingBubble.getHeight() * seafishGame.adjustWidth);
+        }
+
         batch.end();
     }
 }
