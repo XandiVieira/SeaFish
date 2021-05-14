@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
@@ -21,9 +20,6 @@ import java.util.Random;
 public class GameScreen extends BaseScreen {
 
     private final SeafishGame seafishGame;
-
-    //batch
-    private SpriteBatch batch;
 
     //Score
     private int meters, metersSpeed;
@@ -224,8 +220,6 @@ public class GameScreen extends BaseScreen {
         countSharkMeters = 0;
         obstacleHeight = new float[4];
 
-        batch = new SpriteBatch();
-
         setTextures();
 
         fishCircle = new Circle();
@@ -405,9 +399,9 @@ public class GameScreen extends BaseScreen {
                 bubbleSound.play(0.1f);
                 started = true;
                 fallSpeed = JUMP_HEIGHT;
-                batch.begin();
-                batch.draw(fishes[seafishGame.fishNumber][fishVariation], FISH_HORIZONTAL_POSITION, verticalInitialPosition, fishes[seafishGame.fishNumber][fishVariation].getWidth() * seafishGame.adjustWidth, fishes[seafishGame.fishNumber][fishVariation].getHeight() * seafishGame.adjustHeight);
-                batch.end();
+                seafishGame.batch.begin();
+                seafishGame.batch.draw(fishes[seafishGame.fishNumber][fishVariation], FISH_HORIZONTAL_POSITION, verticalInitialPosition, fishes[seafishGame.fishNumber][fishVariation].getWidth() * seafishGame.adjustWidth, fishes[seafishGame.fishNumber][fishVariation].getHeight() * seafishGame.adjustHeight);
+                seafishGame.batch.end();
             }
 
             if (Gdx.input.justTouched()) {
@@ -467,23 +461,23 @@ public class GameScreen extends BaseScreen {
             }
         }
 
-        batch.begin();
-        batch.draw(background[countBackground], 0, 0, seafishGame.width, seafishGame.height);
-        batch.draw(ornaments[countOrnament], horizontalOrnamentMovement, 7, ornaments[countOrnament].getWidth() * seafishGame.adjustWidth, ornaments[countOrnament].getHeight() * seafishGame.adjustHeight);
-        seaweeds[seaweedVariation].draw(batch);
-        seaweeds[2].draw(batch);
-        batch.draw(fishes[seafishGame.fishNumber][fishVariation], FISH_HORIZONTAL_POSITION, verticalInitialPosition, fishes[seafishGame.fishNumber][fishVariation].getWidth() * seafishGame.adjustWidth, fishes[seafishGame.fishNumber][fishVariation].getHeight() * seafishGame.adjustHeight);
-        batch.draw(pauseButton, (pauseButton.getWidth() * seafishGame.adjustWidth), (seafishGame.height - ((float) pauseButton.getHeight() * seafishGame.adjustHeight * 1.5f)), pauseButton.getWidth() * seafishGame.adjustWidth, pauseButton.getHeight() * seafishGame.adjustHeight);
-        batch.draw(musicButton, (pauseButton.getWidth() * seafishGame.adjustWidth * 3f), (seafishGame.height - ((float) pauseButton.getHeight() * seafishGame.adjustHeight * 1.5f)), musicButton.getWidth() * seafishGame.adjustWidth, musicButton.getHeight() * seafishGame.adjustHeight);
+        seafishGame.batch.begin();
+        seafishGame.batch.draw(background[countBackground], 0, 0, seafishGame.width, seafishGame.height);
+        seafishGame.batch.draw(ornaments[countOrnament], horizontalOrnamentMovement, 7, ornaments[countOrnament].getWidth() * seafishGame.adjustWidth, ornaments[countOrnament].getHeight() * seafishGame.adjustHeight);
+        seaweeds[seaweedVariation].draw(seafishGame.batch);
+        seaweeds[2].draw(seafishGame.batch);
+        seafishGame.batch.draw(fishes[seafishGame.fishNumber][fishVariation], FISH_HORIZONTAL_POSITION, verticalInitialPosition, fishes[seafishGame.fishNumber][fishVariation].getWidth() * seafishGame.adjustWidth, fishes[seafishGame.fishNumber][fishVariation].getHeight() * seafishGame.adjustHeight);
+        seafishGame.batch.draw(pauseButton, (pauseButton.getWidth() * seafishGame.adjustWidth), (seafishGame.height - ((float) pauseButton.getHeight() * seafishGame.adjustHeight * 1.5f)), pauseButton.getWidth() * seafishGame.adjustWidth, pauseButton.getHeight() * seafishGame.adjustHeight);
+        seafishGame.batch.draw(musicButton, (pauseButton.getWidth() * seafishGame.adjustWidth * 3f), (seafishGame.height - ((float) pauseButton.getHeight() * seafishGame.adjustHeight * 1.5f)), musicButton.getWidth() * seafishGame.adjustWidth, musicButton.getHeight() * seafishGame.adjustHeight);
 
         if (!goingBack) {
             upAndDownHook();
         }
         for (int i = 0; i < obstacleNumber.length; i++) {
             if (obstacleNumber[i] > 6) {
-                batch.draw(obstacles[obstacleNumber[i]], positionMovementHorizontalObstacle[i], verticalHookMovement[i], obstacles[obstacleNumber[i]].getWidth() * seafishGame.adjustWidth, obstacles[obstacleNumber[i]].getHeight() * seafishGame.adjustHeight);
+                seafishGame.batch.draw(obstacles[obstacleNumber[i]], positionMovementHorizontalObstacle[i], verticalHookMovement[i], obstacles[obstacleNumber[i]].getWidth() * seafishGame.adjustWidth, obstacles[obstacleNumber[i]].getHeight() * seafishGame.adjustHeight);
             } else {
-                batch.draw(obstacles[obstacleNumber[i]], positionMovementHorizontalObstacle[i], obstacleHeight[i], obstacles[obstacleNumber[i]].getWidth() * seafishGame.adjustWidth, obstacles[obstacleNumber[i]].getHeight() * seafishGame.adjustHeight);
+                seafishGame.batch.draw(obstacles[obstacleNumber[i]], positionMovementHorizontalObstacle[i], obstacleHeight[i], obstacles[obstacleNumber[i]].getWidth() * seafishGame.adjustWidth, obstacles[obstacleNumber[i]].getHeight() * seafishGame.adjustHeight);
             }
         }
 
@@ -492,7 +486,7 @@ public class GameScreen extends BaseScreen {
                 wormsRect[i].set(positionMovementHorizontalObstacle[i] - wormDistance[i], wormHeight[i], wormScore[i].getWidth() * seafishGame.adjustWidth, wormScore[i].getHeight() * seafishGame.adjustHeight);
 
                 if (!wormCollidedAux[i] && !paused) {
-                    batch.draw(wormScore[i], positionMovementHorizontalObstacle[i] - wormDistance[i], wormHeight[i], wormScore[i].getWidth() * seafishGame.adjustWidth, wormScore[i].getHeight() * seafishGame.adjustHeight);
+                    seafishGame.batch.draw(wormScore[i], positionMovementHorizontalObstacle[i] - wormDistance[i], wormHeight[i], wormScore[i].getWidth() * seafishGame.adjustWidth, wormScore[i].getHeight() * seafishGame.adjustHeight);
                 }
             }
         }
@@ -506,7 +500,7 @@ public class GameScreen extends BaseScreen {
         }
         if (showBubble) {
             bubbleCircle.set(horizontalBubble, seafishGame.height / 2, (float) (bubble.getTexture().getWidth() / 2) * seafishGame.adjustWidth);
-            batch.draw(bubble, horizontalBubble, seafishGame.height / 2, bubble.getWidth() * seafishGame.adjustWidth, bubble.getHeight() * seafishGame.adjustHeight);
+            seafishGame.batch.draw(bubble, horizontalBubble, seafishGame.height / 2, bubble.getWidth() * seafishGame.adjustWidth, bubble.getHeight() * seafishGame.adjustHeight);
         }
         if (Intersector.overlaps(fishCircle, bubbleCircle) && showBubble) {
             blowBubbleSound.play();
@@ -523,7 +517,7 @@ public class GameScreen extends BaseScreen {
         }
         if (showBonusWorm && !isShark && !isSlowShark) {
             wormBonusRect.set(wormHorizontalBonus, seafishGame.height / 2, wormBonus.getWidth() * seafishGame.adjustWidth, wormBonus.getHeight() * seafishGame.adjustHeight);
-            batch.draw(wormBonus, wormHorizontalBonus, seafishGame.height / 2, wormBonus.getWidth() * seafishGame.adjustWidth, wormBonus.getHeight() * seafishGame.adjustHeight);
+            seafishGame.batch.draw(wormBonus, wormHorizontalBonus, seafishGame.height / 2, wormBonus.getWidth() * seafishGame.adjustWidth, wormBonus.getHeight() * seafishGame.adjustHeight);
         }
 
         if (Intersector.overlaps(fishCircle, wormBonusRect) && showBonusWorm) {
@@ -553,34 +547,34 @@ public class GameScreen extends BaseScreen {
         }
 
         for (int i = 1; i <= seafishGame.wormQuantity; i++) {
-            batch.draw(wormScore[i - 1], (float) ((seafishGame.width - seafishGame.differenceBetweenWidth) - (wormScore[i - 1].getWidth() * seafishGame.adjustWidth * i * 1.15)), (seafishGame.height - recordLayout.height - (wormScore[i - 1].getHeight() * seafishGame.adjustHeight * 1.5f)), wormScore[i - 1].getWidth() * seafishGame.adjustWidth, wormScore[i - 1].getHeight() * seafishGame.adjustHeight);
+            seafishGame.batch.draw(wormScore[i - 1], (float) ((seafishGame.width - seafishGame.differenceBetweenWidth) - (wormScore[i - 1].getWidth() * seafishGame.adjustWidth * i * 1.15)), (seafishGame.height - recordLayout.height - (wormScore[i - 1].getHeight() * seafishGame.adjustHeight * 1.5f)), wormScore[i - 1].getWidth() * seafishGame.adjustWidth, wormScore[i - 1].getHeight() * seafishGame.adjustHeight);
         }
         if (extraLife) {
-            batch.draw(bubble, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2), (float) (seafishGame.height - wormBonus.getHeight() * seafishGame.adjustHeight * 1.3), bubble.getTexture().getWidth() * seafishGame.adjustWidth, bubble.getTexture().getHeight() * seafishGame.adjustHeight);
+            seafishGame.batch.draw(bubble, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2), (float) (seafishGame.height - wormBonus.getHeight() * seafishGame.adjustHeight * 1.3), bubble.getTexture().getWidth() * seafishGame.adjustWidth, bubble.getTexture().getHeight() * seafishGame.adjustHeight);
         }
 
-        metersLabel.draw(batch, (int) metersScore + "m", (seafishGame.width - seafishGame.differenceBetweenWidth) / 2 - (metersLayout.width / 2), seafishGame.height - (seafishGame.height / 10));
-        recordLabel.draw(batch, recordLayout, (seafishGame.width - seafishGame.differenceBetweenWidth - (recordLayout.width) - 15), seafishGame.height - 15);
+        metersLabel.draw(seafishGame.batch, (int) metersScore + "m", (seafishGame.width - seafishGame.differenceBetweenWidth) / 2 - (metersLayout.width / 2), seafishGame.height - (seafishGame.height / 10));
+        recordLabel.draw(seafishGame.batch, recordLayout, (seafishGame.width - seafishGame.differenceBetweenWidth - (recordLayout.width) - 15), seafishGame.height - 15);
         if (gameOver) {
-            batch.draw(gameOverText, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (gameOverText.getWidth() * seafishGame.adjustWidth / 2), (float) (seafishGame.height - (gameOverText.getHeight() * seafishGame.adjustHeight * 2.5)), gameOverText.getWidth() * seafishGame.adjustWidth, gameOverText.getHeight() * seafishGame.adjustHeight);
-            batch.draw(reload, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (reload.getWidth() * seafishGame.adjustWidth), seafishGame.height / 2, 150 * seafishGame.adjustWidth, 150 * seafishGame.adjustHeight);
-            batch.draw(menuButton, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (menuButton.getWidth() * seafishGame.adjustWidth / 2), (float) ((seafishGame.height / 3) - menuSprite.getHeight() * seafishGame.adjustHeight * 1.5), menuButton.getWidth() * seafishGame.adjustWidth, menuButton.getHeight() * seafishGame.adjustHeight);
+            seafishGame.batch.draw(gameOverText, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (gameOverText.getWidth() * seafishGame.adjustWidth / 2), (float) (seafishGame.height - (gameOverText.getHeight() * seafishGame.adjustHeight * 2.5)), gameOverText.getWidth() * seafishGame.adjustWidth, gameOverText.getHeight() * seafishGame.adjustHeight);
+            seafishGame.batch.draw(reload, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (reload.getWidth() * seafishGame.adjustWidth), seafishGame.height / 2, 150 * seafishGame.adjustWidth, 150 * seafishGame.adjustHeight);
+            seafishGame.batch.draw(menuButton, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (menuButton.getWidth() * seafishGame.adjustWidth / 2), (float) ((seafishGame.height / 3) - menuSprite.getHeight() * seafishGame.adjustHeight * 1.5), menuButton.getWidth() * seafishGame.adjustWidth, menuButton.getHeight() * seafishGame.adjustHeight);
         }
 
         if (displayKeepPlayingScreen) {
-            batch.draw(continueButton, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (continueButton.getWidth() * seafishGame.adjustWidth / 2), (float) (seafishGame.height - (continueButton.getHeight() * seafishGame.adjustHeight * 2.5)), continueButton.getWidth() * seafishGame.adjustWidth, continueButton.getHeight() * seafishGame.adjustHeight);
-            batch.draw(yesButton, (float) (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (yesButton.getWidth() * seafishGame.adjustWidth * 1.5)), (float) ((seafishGame.height / 3) - yesSprite.getHeight() * seafishGame.adjustHeight * 1.5), yesButton.getWidth() * seafishGame.adjustWidth, yesButton.getHeight() * seafishGame.adjustHeight);
-            batch.draw(noButton, (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) + (noButton.getWidth() * seafishGame.adjustWidth)), (float) ((seafishGame.height / 3) - noSprite.getHeight() * seafishGame.adjustHeight * 1.5), noButton.getWidth() * seafishGame.adjustWidth, noButton.getHeight() * seafishGame.adjustHeight);
-            batch.draw(videoButton, (float) (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (yesButton.getWidth() * seafishGame.adjustWidth * 1.5) + videoButton.getWidth() * seafishGame.adjustWidth * 5), (float) ((seafishGame.height / 3) - yesSprite.getHeight() * seafishGame.adjustHeight * 1.5), yesButton.getWidth() * seafishGame.adjustWidth, yesButton.getHeight() * seafishGame.adjustHeight);
+            seafishGame.batch.draw(continueButton, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (continueButton.getWidth() * seafishGame.adjustWidth / 2), (float) (seafishGame.height - (continueButton.getHeight() * seafishGame.adjustHeight * 2.5)), continueButton.getWidth() * seafishGame.adjustWidth, continueButton.getHeight() * seafishGame.adjustHeight);
+            seafishGame.batch.draw(yesButton, (float) (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (yesButton.getWidth() * seafishGame.adjustWidth * 1.5)), (float) ((seafishGame.height / 3) - yesSprite.getHeight() * seafishGame.adjustHeight * 1.5), yesButton.getWidth() * seafishGame.adjustWidth, yesButton.getHeight() * seafishGame.adjustHeight);
+            seafishGame.batch.draw(noButton, (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) + (noButton.getWidth() * seafishGame.adjustWidth)), (float) ((seafishGame.height / 3) - noSprite.getHeight() * seafishGame.adjustHeight * 1.5), noButton.getWidth() * seafishGame.adjustWidth, noButton.getHeight() * seafishGame.adjustHeight);
+            seafishGame.batch.draw(videoButton, (float) (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (yesButton.getWidth() * seafishGame.adjustWidth * 1.5) + videoButton.getWidth() * seafishGame.adjustWidth * 5), (float) ((seafishGame.height / 3) - yesSprite.getHeight() * seafishGame.adjustHeight * 1.5), yesButton.getWidth() * seafishGame.adjustWidth, yesButton.getHeight() * seafishGame.adjustHeight);
         }
 
         if (goingBack) {
             if (fishVariation == 0) {
-                tapLabel.draw(batch, "tap!", TAP_X, TAP_Y);
+                tapLabel.draw(seafishGame.batch, "tap!", TAP_X, TAP_Y);
             }
         }
 
-        batch.end();
+        seafishGame.batch.end();
 
         setTackles();
 

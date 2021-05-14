@@ -56,6 +56,8 @@ import com.xandi.seafish.interfaces.RankingInterface;
 import com.xandi.seafish.interfaces.VideoEventListener;
 import com.xandi.seafish.model.Position;
 import com.xandi.seafish.model.User;
+import com.xandi.seafish.screens.LoginScreen;
+import com.xandi.seafish.screens.MenuScreen;
 import com.xandi.seafish.util.Constants;
 import com.xandi.seafish.util.Util;
 
@@ -68,9 +70,10 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     private static final String TAG = "AndroidLauncher";
     private final int SHOW_ADS = 1;
     private final int HIDE_ADS = 0;
-    AdView bannerAd;
+    private AdView bannerAd;
     private boolean is_video_ad_loaded;
 
+    private SeafishGame game;
     private CallbackManager callbackManager;
     private FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener firebaseAuthListener;
@@ -82,6 +85,9 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     private String firebaseInstanceId;
     private RelativeLayout layout;
     private View gameView;
+    private AdRequest request;
+    private RelativeLayout.LayoutParams adParam;
+    private AndroidApplicationConfiguration config;
 
     @SuppressLint("HandlerLeak")
     protected Handler handler = new Handler() {
@@ -109,6 +115,11 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     private RewardedVideoAd adRewardedVideoView;
     private VideoEventListener videoEventListener;
     private LoginCallback loginCallback;
+    private GoogleServices googleServices = this;
+    private RankingInterface rankingInterface = this;
+    private FacebookAuth facebookAuth = this;
+    private PrivacyPolicyAndTerms privacyPolicyAndTerms = this;
+    private AdService adService = this;
 
     public void callFullScreen() {
         View v = this.getWindow().getDecorView();
@@ -132,17 +143,17 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
         FacebookSdk.sdkInitialize(getApplicationContext());
 
         layout = new RelativeLayout(this);
-        AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-        gameView = initializeForView(new SeafishGame(this, this, this, this, this), config);
+        config = new AndroidApplicationConfiguration();
+        game = new SeafishGame(this, this, this, this, this);
+        gameView = initializeForView(game, config);
+
+        layout.addView(gameView);
 
         startFirebaseInstances();
         firebaseAuthListener = firebaseAuth -> {
             firebaseUser = firebaseAuth.getCurrentUser();
             if (firebaseUser != null) {
                 getUserDataFromFirebase(firebaseUser.getUid());
-            } else {
-                layout.removeView(gameView);
-                layout.addView(gameView);
             }
             isLoggedIn = firebaseUser != null;
         };
@@ -158,7 +169,7 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
             }
         });
 
-        bannerAd.setAdSize(AdSize.SMART_BANNER);
+        bannerAd.setAdSize(AdSize.BANNER);
         bannerAd.setAdUnitId(AD_UNIT_ID_BANNER);
 
         List<String> testDeviceIds = Collections.singletonList("50D0F6A4C150377413FF5750D8289E5F");
@@ -166,12 +177,10 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
                 new RequestConfiguration.Builder().setTestDeviceIds(testDeviceIds).build();
         MobileAds.setRequestConfiguration(configuration);
 
-        AdRequest request = new AdRequest.Builder().build();
-        RelativeLayout.LayoutParams adParam = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        request = new AdRequest.Builder().build();
+        adParam = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         adParam.setMargins(0, 0, 0, 0);
-        layout.addView(bannerAd, adParam);
-        bannerAd.loadAd(request);
-        setContentView(layout);
+        addAdView();
 
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId("ca-app-pub-1676578761693318/1635426123");
@@ -179,6 +188,12 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
 
         setupInterstitialAds();
         setupRewarded();
+    }
+
+    private void addAdView() {
+        layout.addView(bannerAd, adParam);
+        bannerAd.loadAd(request);
+        setContentView(layout);
     }
 
     public void loadRewardedVideoAd() {
@@ -414,9 +429,13 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
                 } else {
                     updateUser(user);
                 }
-                layout.removeView(gameView);
-                layout.addView(gameView);
-                //loginCallback.userLoggedIn(user.getName(), user.getPersonalRecord());
+                if (loginCallback != null) {
+                    loginCallback.userLoggedIn(user.getName(), user.getPersonalRecord());
+                }
+                if (game.getScreen() instanceof LoginScreen) {
+                    game.dispose();
+                    game.setScreen(new MenuScreen(game));
+                }
             }
 
             @Override

@@ -4,6 +4,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.xandi.seafish.interfaces.AdService;
@@ -54,18 +55,20 @@ public class SeafishGame extends Game implements VideoEventListener {
 
     private Viewport viewport;
 
+    public SpriteBatch batch;
+
     SeafishGame(AdService handler, GoogleServices googleServices, RankingInterface rankingInterface, FacebookAuth facebookAuth, PrivacyPolicyAndTerms privacyPolicyAndTerms) {
         this.handler = handler;
         this.googleServices = googleServices;
         this.googleServices.setVideoEventListener(this);
         this.rankingInterface = rankingInterface;
         this.facebookAuth = facebookAuth;
-        //this.facebookAuth.setLoginCallback(this);
         this.privacyPolicyAndTerms = privacyPolicyAndTerms;
     }
 
     @Override
     public void create() {
+        batch = new SpriteBatch();
         width = Gdx.graphics.getWidth();
         height = Gdx.graphics.getHeight();
         adjustHeight = (float) (height / heightStandard);
@@ -85,11 +88,6 @@ public class SeafishGame extends Game implements VideoEventListener {
         } else {
             setScreen(new LoginScreen(this));
         }
-    }
-
-    @Override
-    public void render() {
-        super.render();
     }
 
     @Override

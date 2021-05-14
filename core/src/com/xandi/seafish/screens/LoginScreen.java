@@ -3,23 +3,23 @@ package com.xandi.seafish.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.xandi.seafish.SeafishGame;
+import com.xandi.seafish.interfaces.LoginCallback;
 
 import java.util.Random;
 
-public class LoginScreen extends BaseScreen {
+public class LoginScreen extends BaseScreen implements LoginCallback {
 
     private final SeafishGame seafishGame;
     private Sprite menuSprite, loginSprite;
     private Texture background, menuButton, loginButton, movingBubble;
-    private SpriteBatch batch;
 
     private float[] bubbleHorizontalMovement;
     private float[] bubbleVerticalMovement;
     private boolean[] bubbleTouchedTop;
     private boolean[] BubbleTouchedSide;
     private Random bubblePosition;
+    private boolean hasPassedByShow = false;
 
     public LoginScreen(SeafishGame seafishGame) {
         super(seafishGame);
@@ -29,8 +29,8 @@ public class LoginScreen extends BaseScreen {
     @Override
     public void show() {
         super.show();
+        seafishGame.facebookAuth.setLoginCallback(this);
         seafishGame.handler.showBannerAd(true);
-
         bubbleHorizontalMovement = new float[10];
         bubbleVerticalMovement = new float[10];
         bubbleTouchedTop = new boolean[10];
@@ -43,11 +43,16 @@ public class LoginScreen extends BaseScreen {
 
         setTextures();
         setButtons();
-        batch = new SpriteBatch();
+        hasPassedByShow = true;
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        super.resize(width, height);
     }
 
     private void setTextures() {
-        background = new Texture("images/scenarios/telainicio.png");
+        background = new Texture("images/scenarios/background.jpeg");
         menuButton = new Texture("images/buttons/menu.png");
         loginButton = new Texture("images/buttons/login.png");
         movingBubble = new Texture("images/ornaments/bolhainicio.png");
@@ -66,6 +71,9 @@ public class LoginScreen extends BaseScreen {
     @Override
     public void render(float delta) {
         super.render(delta);
+        if (!hasPassedByShow) {
+            show();
+        }
 
         if (Gdx.input.justTouched()) {
             if (loginSprite.getBoundingRectangle().contains(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
@@ -81,10 +89,10 @@ public class LoginScreen extends BaseScreen {
             }
         }
 
-        batch.begin();
-        batch.draw(background, 0, 0, seafishGame.width, seafishGame.height);
-        batch.draw(loginButton, (float) (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - ((loginButton.getWidth() * seafishGame.adjustWidth * 1.5) / 2)), (float) (((seafishGame.height * seafishGame.adjustWidth) / 2f) - ((loginSprite.getHeight() * 1.5 * seafishGame.adjustHeight))), (float) (loginButton.getWidth() * seafishGame.adjustWidth * 1.5), (float) (loginButton.getHeight() * seafishGame.adjustHeight * 1.5));
-        batch.draw(menuButton, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (menuButton.getWidth() * seafishGame.adjustWidth / 2), (float) ((seafishGame.height / 3) - menuSprite.getHeight() * seafishGame.adjustHeight * 1.5), menuButton.getWidth() * seafishGame.adjustWidth, menuButton.getHeight() * seafishGame.adjustHeight);
+        seafishGame.batch.begin();
+        seafishGame.batch.draw(background, 0, 0, seafishGame.width, seafishGame.height);
+        seafishGame.batch.draw(loginButton, (float) (((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - ((loginButton.getWidth() * seafishGame.adjustWidth * 1.5) / 2)), (float) (((seafishGame.height * seafishGame.adjustWidth) / 2f) - ((loginSprite.getHeight() * 1.5 * seafishGame.adjustHeight))), (float) (loginButton.getWidth() * seafishGame.adjustWidth * 1.5), (float) (loginButton.getHeight() * seafishGame.adjustHeight * 1.5));
+        seafishGame.batch.draw(menuButton, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (menuButton.getWidth() * seafishGame.adjustWidth / 2), (float) ((seafishGame.height / 3) - menuSprite.getHeight() * seafishGame.adjustHeight * 1.5), menuButton.getWidth() * seafishGame.adjustWidth, menuButton.getHeight() * seafishGame.adjustHeight);
 
         for (int i = 0; i < 10; i++) {
             if (bubbleHorizontalMovement[i] >= (seafishGame.width - seafishGame.differenceBetweenWidth) - movingBubble.getWidth() * seafishGame.adjustWidth) {
@@ -114,9 +122,25 @@ public class LoginScreen extends BaseScreen {
             } else {
                 bubbleVerticalMovement[i] += (Gdx.graphics.getDeltaTime() * bubblePosition.nextInt(150) + 1) * seafishGame.adjustHeight;
             }
-            batch.draw(movingBubble, bubbleHorizontalMovement[i], bubbleVerticalMovement[i], movingBubble.getWidth() * seafishGame.adjustWidth, movingBubble.getHeight() * seafishGame.adjustWidth);
+            seafishGame.batch.draw(movingBubble, bubbleHorizontalMovement[i], bubbleVerticalMovement[i], movingBubble.getWidth() * seafishGame.adjustWidth, movingBubble.getHeight() * seafishGame.adjustWidth);
         }
 
-        batch.end();
+        seafishGame.batch.end();
+    }
+
+    @Override
+    public void userLoggedIn(String userName, Long personalRecord) {
+        seafishGame.setScreen(new MenuScreen(seafishGame));
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        seafishGame.batch.dispose();
+    }
+
+    @Override
+    public void userLoggedOut() {
+
     }
 }
