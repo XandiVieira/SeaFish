@@ -114,6 +114,10 @@ public class SeafishGame extends Game implements VideoEventListener {
         super.resize(width, height);
         this.width = width;
         this.height = height;
+        adjustHeight = (float) (this.height / heightStandard);
+        adjustWidth = (float) (this.width / widthStandard);
+        differenceBetweenWidth = this.width - originalWidth;
+        viewport.update(width, height, true);
     }
 
     public void saveScores(int metersScore, String usedFish, String deathTackle, int caughtWarms, int caughtSpecialWarms, int turnedShark, int caughtBubbles, int caughtByHook) {
