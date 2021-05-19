@@ -12,7 +12,8 @@ public class LoginScreen extends BaseScreen implements LoginCallback {
 
     private final SeafishGame seafishGame;
     private Sprite menuSprite, loginSprite;
-    private Texture background, menuButton, loginButton, movingBubble;
+    private Texture background, menuButton, loginButton;
+    private Texture[] movingBubble;
 
     private float[] bubbleHorizontalMovement;
     private float[] bubbleVerticalMovement;
@@ -35,6 +36,7 @@ public class LoginScreen extends BaseScreen implements LoginCallback {
         bubbleVerticalMovement = new float[10];
         bubbleTouchedTop = new boolean[10];
         BubbleTouchedSide = new boolean[10];
+        movingBubble = new Texture[10];
         bubblePosition = new Random();
         for (int i = 0; i < 10; i++) {
             bubbleHorizontalMovement[i] = (float) bubblePosition.nextInt((int) seafishGame.width * 2);
@@ -55,7 +57,39 @@ public class LoginScreen extends BaseScreen implements LoginCallback {
         background = new Texture("images/scenarios/background.jpeg");
         menuButton = new Texture("images/buttons/menu.png");
         loginButton = new Texture("images/buttons/login.png");
-        movingBubble = new Texture("images/ornaments/bolhainicio.png");
+        setBubbles();
+    }
+
+    private void setBubbles() {
+        movingBubble[0] = new Texture("images/ornaments/bubblefish1.png");
+        movingBubble[1] = new Texture("images/ornaments/bubblefish2.png");
+        movingBubble[2] = new Texture("images/ornaments/bubblefish3.png");
+        if (seafishGame.record >= 2000) {
+            movingBubble[3] = new Texture("images/ornaments/bubblefish4.png");
+        } else {
+            movingBubble[3] = new Texture("images/ornaments/bubblefishshadow4.png");
+        }
+
+        if (seafishGame.record >= 4000) {
+            movingBubble[4] = new Texture("images/ornaments/bubblefish5.png");
+        } else {
+            movingBubble[4] = new Texture("images/ornaments/bubblefishshadow5.png");
+        }
+
+        if (seafishGame.record >= 6000) {
+            movingBubble[5] = new Texture("images/ornaments/bubblefish6.png");
+        } else {
+            movingBubble[5] = new Texture("images/ornaments/bubblefishshadow6.png");
+        }
+
+        if (seafishGame.record >= 8000) {
+            movingBubble[6] = new Texture("images/ornaments/bubblefish7.png");
+        } else {
+            movingBubble[6] = new Texture("images/ornaments/bubblefishshadow7.png");
+        }
+        movingBubble[7] = new Texture("images/ornaments/bolhainicio.png");
+        movingBubble[8] = new Texture("images/ornaments/bolhainicio.png");
+        movingBubble[9] = new Texture("images/ornaments/bolhainicio.png");
     }
 
     private void setButtons() {
@@ -95,7 +129,7 @@ public class LoginScreen extends BaseScreen implements LoginCallback {
         seafishGame.batch.draw(menuButton, ((seafishGame.width - seafishGame.differenceBetweenWidth) / 2) - (menuButton.getWidth() * seafishGame.adjustWidth / 2), (float) ((seafishGame.height / 3) - menuSprite.getHeight() * seafishGame.adjustHeight * 1.5), menuButton.getWidth() * seafishGame.adjustWidth, menuButton.getHeight() * seafishGame.adjustHeight);
 
         for (int i = 0; i < 10; i++) {
-            if (bubbleHorizontalMovement[i] >= (seafishGame.width - seafishGame.differenceBetweenWidth) - movingBubble.getWidth() * seafishGame.adjustWidth) {
+            if (bubbleHorizontalMovement[i] >= (seafishGame.width - seafishGame.differenceBetweenWidth) - movingBubble[i].getWidth() * seafishGame.adjustWidth) {
                 BubbleTouchedSide[i] = true;
             }
 
@@ -109,7 +143,7 @@ public class LoginScreen extends BaseScreen implements LoginCallback {
                 bubbleHorizontalMovement[i] += (Gdx.graphics.getDeltaTime() * bubblePosition.nextInt(200) + 1) * seafishGame.adjustWidth;
             }
 
-            if (bubbleVerticalMovement[i] >= seafishGame.height - movingBubble.getHeight() * seafishGame.adjustHeight) {
+            if (bubbleVerticalMovement[i] >= seafishGame.height - movingBubble[i].getHeight() * seafishGame.adjustHeight) {
                 bubbleTouchedTop[i] = true;
             }
 
@@ -122,7 +156,7 @@ public class LoginScreen extends BaseScreen implements LoginCallback {
             } else {
                 bubbleVerticalMovement[i] += (Gdx.graphics.getDeltaTime() * bubblePosition.nextInt(150) + 1) * seafishGame.adjustHeight;
             }
-            seafishGame.batch.draw(movingBubble, bubbleHorizontalMovement[i], bubbleVerticalMovement[i], movingBubble.getWidth() * seafishGame.adjustWidth, movingBubble.getHeight() * seafishGame.adjustWidth);
+            seafishGame.batch.draw(movingBubble[i], bubbleHorizontalMovement[i], bubbleVerticalMovement[i], movingBubble[i].getWidth() * seafishGame.adjustWidth, movingBubble[i].getHeight() * seafishGame.adjustWidth);
         }
 
         seafishGame.batch.end();

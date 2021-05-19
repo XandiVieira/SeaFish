@@ -121,9 +121,9 @@ public class SeafishGame extends Game implements VideoEventListener {
     }
 
     public void saveScores(int metersScore, String usedFish, String deathTackle, int caughtWarms, int caughtSpecialWarms, int turnedShark, int caughtBubbles, int caughtByHook) {
-        rankingInterface.saveRecord((int) metersScore, usedFish, deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook);
+        rankingInterface.saveRecord(metersScore, usedFish, deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook);
         if (metersScore > record) {
-            prefs.putInteger("score", (int) metersScore);
+            prefs.putInteger("score", metersScore);
             prefs.flush();
         }
     }
