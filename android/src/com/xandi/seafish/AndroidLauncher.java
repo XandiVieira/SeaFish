@@ -341,7 +341,6 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                 Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).limitToLast(Constants.RANKING_SIZE).removeEventListener(this);
-
                                 HashMap<DatabaseReference, Position> ranking = new HashMap<>();
                                 for (DataSnapshot snap : snapshot.getChildren()) {
                                     ranking.put(snap.getRef(), snap.getValue(Position.class));
