@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Seafish</string>
     <string name="facebook_app_id">432633234840680</string>
     <string name="fb_login_protocol_scheme">fb432633234840680</string>
@@ -10,6 +9,4 @@
     <string name="position">Position</string>
     <string name="seafish_ranking">Seafish Ranking</string>
     <string name="seafishGame">Seafish</string>
-
-
 </resources>

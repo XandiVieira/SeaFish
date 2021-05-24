@@ -61,9 +61,14 @@ import com.xandi.seafish.screens.MenuScreen;
 import com.xandi.seafish.util.Constants;
 import com.xandi.seafish.util.Util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class AndroidLauncher extends AndroidApplication implements AdService, GoogleServices, RewardedVideoAdListener, RankingInterface, FacebookAuth, PrivacyPolicyAndTerms {
 
@@ -115,20 +120,16 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
     private RewardedVideoAd adRewardedVideoView;
     private VideoEventListener videoEventListener;
     private LoginCallback loginCallback;
-    private GoogleServices googleServices = this;
-    private RankingInterface rankingInterface = this;
-    private FacebookAuth facebookAuth = this;
-    private PrivacyPolicyAndTerms privacyPolicyAndTerms = this;
-    private AdService adService = this;
+    private final GoogleServices googleServices = this;
+    private final RankingInterface rankingInterface = this;
+    private final FacebookAuth facebookAuth = this;
+    private final PrivacyPolicyAndTerms privacyPolicyAndTerms = this;
+    private final AdService adService = this;
 
     public void callFullScreen() {
         View v = this.getWindow().getDecorView();
-        if (Build.VERSION.SDK_INT < 19) {
-            v.setSystemUiVisibility(View.GONE);
-        } else {
-            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-            v.setSystemUiVisibility(uiOptions);
-        }
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        v.setSystemUiVisibility(uiOptions);
     }
 
     @Override
@@ -336,20 +337,43 @@ public class AndroidLauncher extends AndroidApplication implements AdService, Go
                         if (score > user.getPersonalRecord()) {
                             Util.mDatabaseUserRef.child(firebaseUser.getUid()).child(Constants.DATABASE_REF_PERSONAL_RECORD).setValue(score);
                         }
-                        Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).limitToLast(Constants.RANKING_SIZE).addValueEventListener(new ValueEventListener() {
+                        Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).addValueEventListener(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                 Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).limitToLast(Constants.RANKING_SIZE).removeEventListener(this);
-                                if (snapshot.getChildrenCount() >= Constants.RANKING_SIZE) {
-                                    for (DataSnapshot snap : snapshot.getChildren()) {
-                                        Position position = snap.getValue(Position.class);
-                                        if (position != null && score > position.getScore()) {
+
+                                HashMap<DatabaseReference, Position> ranking = new HashMap<>();
+                                for (DataSnapshot snap : snapshot.getChildren()) {
+                                    ranking.put(snap.getRef(), snap.getValue(Position.class));
+                                }
+                                Map<DatabaseReference, Position> oldPositions = ranking.entrySet().stream().filter(p -> p.getValue().getUserUid().equals(user.getUid())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                                //user already in the ranking
+                                if (ranking.values().stream().map(Position::getUserUid).collect(Collectors.toList()).contains(user.getUid())) {
+                                    if (!oldPositions.values().isEmpty()) {
+                                        if (score > new ArrayList<>(oldPositions.values()).get(0).getScore()) {
                                             Util.mDatabaseRankingRef.push().setValue(new Position(user.getUid(), score, usedFish, deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook));
-                                            break;
+                                            for (DatabaseReference ref : oldPositions.keySet()) {
+                                                ref.removeValue();
+                                            }
                                         }
                                     }
                                 } else {
-                                    Util.mDatabaseRankingRef.push().setValue(new Position(user.getUid(), score, usedFish, deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook));
+                                    if (ranking.size() >= Constants.RANKING_SIZE) {
+                                        //Find lowest record owner
+                                        Position lowestPosition = ranking.values().stream().min(Comparator.comparing(Position::getScore)).orElse(null);
+                                        if (lowestPosition != null && score > lowestPosition.getScore()) {
+                                            Util.mDatabaseRankingRef.push().setValue(new Position(user.getUid(), score, usedFish, deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook));
+                                            for (Map.Entry<DatabaseReference, Position> entry : oldPositions.entrySet()) {
+                                                DatabaseReference ref = entry.getKey();
+                                                Position pos = entry.getValue();
+                                                if (pos.equals(lowestPosition)) {
+                                                    ref.removeValue();
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        Util.mDatabaseRankingRef.push().setValue(new Position(user.getUid(), score, usedFish, deathTackle, caughtWarms, caughtSpecialWarms, turnedShark, caughtBubbles, caughtByHook));
+                                    }
                                 }
                             }
 

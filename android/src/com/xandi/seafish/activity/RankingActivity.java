@@ -39,7 +39,7 @@ public class RankingActivity extends Activity {
 
         background.setOnClickListener(v -> finish());
 
-        Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).limitToFirst(100).addValueEventListener(new ValueEventListener() {
+        Util.mDatabaseRankingRef.orderByChild(Constants.DATABASE_REF_SCORE).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Position> ranking = new ArrayList<>();
@@ -57,7 +57,7 @@ public class RankingActivity extends Activity {
                         }
                     }
                 }
-                Collections.sort(ranking, Collections.reverseOrder());
+                ranking.sort(Collections.reverseOrder());
                 recyclerViewPositionAdapter = new RecyclerViewPositionAdapter(ranking, RankingActivity.this, userUid);
                 LinearLayoutManager layoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false);
                 rankingView.setLayoutManager(layoutManager);

@@ -33,7 +33,7 @@ android {
     }
     defaultConfig {
         applicationId "com.xandi.seafish"
-        minSdkVersion 16
+        minSdkVersion 24
         targetSdkVersion 30
         versionCode 20
         versionName "1.7.5"
@@ -164,5 +164,5 @@ idea {
 }
 
 dependencies {
-    implementation 'com.google.firebase:firebase-database:16.0.4'
+    implementation 'com.google.firebase:firebase-database:20.0.0'
 }

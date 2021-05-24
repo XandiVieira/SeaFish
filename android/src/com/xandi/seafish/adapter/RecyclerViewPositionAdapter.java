@@ -1,6 +1,7 @@
 package com.xandi.seafish.adapter;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,10 +10,15 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -26,9 +32,9 @@ import java.util.List;
 
 public class RecyclerViewPositionAdapter extends RecyclerView.Adapter<RecyclerViewPositionAdapter.ViewHolder> {
 
-    private List<Position> elements;
-    private Context context;
-    private String userUid;
+    private final List<Position> elements;
+    private final Context context;
+    private final String userUid;
 
     public RecyclerViewPositionAdapter(List<Position> elements, Context context, String userUid) {
         this.elements = elements;
@@ -49,7 +55,6 @@ public class RecyclerViewPositionAdapter extends RecyclerView.Adapter<RecyclerVi
         final String[] username = new String[1];
 
         if (position.getUserUid().equals(userUid)) {
-            //holder.background.setBackground(context.getResources().getDrawable(R.drawable.my_position_shape));
             holder.name.setTextColor(context.getResources().getColor(R.color.accent));
         }
 
@@ -66,7 +71,9 @@ public class RecyclerViewPositionAdapter extends RecyclerView.Adapter<RecyclerVi
         holder.score.setTextSize(textSize);
 
         if (pos <= 2) {
-            holder.score.setTextColor(context.getResources().getColor(R.color.accent));
+            holder.score.setTextColor(context.getResources().getColor(R.color.accent_dark));
+        } else {
+            holder.score.setTextColor(context.getResources().getColor(R.color.primary_dark));
         }
 
         Util.mDatabaseUserRef.child(position.getUserUid()).addValueEventListener(new ValueEventListener() {
@@ -75,7 +82,17 @@ public class RecyclerViewPositionAdapter extends RecyclerView.Adapter<RecyclerVi
                 User user = snapshot.getValue(User.class);
                 if (user != null) {
                     username[0] = user.getName();
-                    Glide.with(context).load(user.getPhotoPath()).apply(RequestOptions.circleCropTransform()).into(holder.photo);
+                    Glide.with(context).load(user.getPhotoPath()).listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            return false;
+                        }
+                    }).apply(RequestOptions.circleCropTransform()).into(holder.photo);
                     holder.position.setText((pos + 1) + "º");
                     holder.name.setText(user.getName());
                     holder.score.setText(position.getScore() + "m");
@@ -106,11 +123,11 @@ public class RecyclerViewPositionAdapter extends RecyclerView.Adapter<RecyclerVi
 
     static class ViewHolder extends RecyclerView.ViewHolder {
 
-        private LinearLayout background;
-        private ImageView photo;
-        private TextView position;
-        private TextView name;
-        private TextView score;
+        private final LinearLayout background;
+        private final ImageView photo;
+        private final TextView position;
+        private final TextView name;
+        private final TextView score;
 
         ViewHolder(View rowView) {
             super(rowView);

@@ -1163,7 +1163,7 @@ public class GameScreen extends BaseScreen {
 
     private void setTextures() {
         fishSprite = new Sprite(new Texture("images/characters/peixe1.png"));
-        background[0] = new Texture("images/scenarios/fundo1.png");
+        background[0] = new Texture("images/scenarios/fundo1.jpeg");
         background[1] = new Texture("images/scenarios/fundo2.png");
         background[2] = new Texture("images/scenarios/fundo3.png");
         background[3] = new Texture("images/scenarios/fundo4.png");
